@@ -1,0 +1,95 @@
+{
+  "checks": [
+    {
+      "direction": 1,
+      "width": 1440,
+      "overflow": false,
+      "gift_preview": "pass",
+      "invalid_input": "pass",
+      "filter": "pass",
+      "demo_identity": "pass"
+    },
+    {
+      "direction": 1,
+      "width": 768,
+      "overflow": false,
+      "gift_preview": "pass",
+      "invalid_input": "pass",
+      "filter": "pass",
+      "demo_identity": "pass"
+    },
+    {
+      "direction": 1,
+      "width": 375,
+      "overflow": false,
+      "gift_preview": "pass",
+      "invalid_input": "pass",
+      "filter": "pass",
+      "demo_identity": "pass"
+    },
+    {
+      "direction": 2,
+      "width": 1440,
+      "overflow": false,
+      "gift_preview": "pass",
+      "invalid_input": "pass",
+      "filter": "pass",
+      "demo_identity": "pass"
+    },
+    {
+      "direction": 2,
+      "width": 768,
+      "overflow": false,
+      "gift_preview": "pass",
+      "invalid_input": "pass",
+      "filter": "pass",
+      "demo_identity": "pass"
+    },
+    {
+      "direction": 2,
+      "width": 375,
+      "overflow": false,
+      "gift_preview": "pass",
+      "invalid_input": "pass",
+      "filter": "pass",
+      "demo_identity": "pass"
+    },
+    {
+      "direction": 3,
+      "width": 1440,
+      "overflow": false,
+      "gift_preview": "pass",
+      "invalid_input": "pass",
+      "filter": "pass",
+      "demo_identity": "pass"
+    },
+    {
+      "direction": 3,
+      "width": 768,
+      "overflow": false,
+      "gift_preview": "pass",
+      "invalid_input": "pass",
+      "filter": "pass",
+      "demo_identity": "pass"
+    },
+    {
+      "direction": 3,
+      "width": 375,
+      "overflow": false,
+      "gift_preview": "pass",
+      "invalid_input": "pass",
+      "filter": "pass",
+      "demo_identity": "pass"
+    }
+  ],
+  "shared_preview": "pass",
+  "clipboard_share": "pass",
+  "empty_collection": "pass",
+  "console_errors": [],
+  "viewports": [
+    1440,
+    768,
+    375
+  ],
+  "scope": "Static prototype only. No wallet, payment, database or NFT integration."
+}
