@@ -1,0 +1,14 @@
+[
+  {
+    "id": "04-hallmark",
+    "label": "④ Hallmark 修订：移除站点水墨背景",
+    "file": "04-hallmark-v1.png",
+    "prompt": "Edit this website design comp with ONE targeted change: REMOVE the decorative ink-wash mountains spreading along the bottom of the first screen. The platform background must be an independent flat pale mineral/off-white surface. Do not borrow watercolor or ink-wash texture from the artwork. Preserve the two rectangular artwork images exactly as artworks, with all their internal ink, paper and colorful pixel textures unchanged. Preserve all composition, navigation, centered wordmark, type, captions, button positions, lower section and page dimensions. Replace only the out-of-artwork ink-mountain backdrop with the same clean neutral page ground. The result must still be this quiet Atelier website, not a new layout. Do not add anything."
+  },
+  {
+    "id": "05-impeccable",
+    "label": "⑤ Impeccable 修订：平台与作品保持独立",
+    "file": "05-impeccable-v1.png",
+    "prompt": "Edit this website homepage comp with ONE targeted correction: REMOVE the large pale ink-wash sheep/mountain watermark or background spreading behind the bottom dedication section. The website must not adopt the artwork's watercolor/ink style. Make the entire website backdrop outside the distinct rectangular artwork images a clean, flat neutral pale mineral-grey/off-white. Keep the central tall sheep artwork unchanged, and retain the vivid pixel cat artwork and smaller abstract artwork unchanged. Preserve all layout, spacing, text, typography, recipient input, navigation, buttons, warm restrained action accent and overall page dimensions. Change only that decorative lower backdrop. No new design elements, no new composition."
+  }
+]
