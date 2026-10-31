@@ -1,0 +1,125 @@
+{
+  "viewports": [
+    {
+      "page": "existence",
+      "width": 320,
+      "overflow": false,
+      "fonts": "loaded"
+    },
+    {
+      "page": "existence",
+      "width": 375,
+      "overflow": false,
+      "fonts": "loaded"
+    },
+    {
+      "page": "existence",
+      "width": 768,
+      "overflow": false,
+      "fonts": "loaded"
+    },
+    {
+      "page": "existence",
+      "width": 1280,
+      "overflow": false,
+      "fonts": "loaded"
+    },
+    {
+      "page": "existence",
+      "width": 1440,
+      "overflow": false,
+      "fonts": "loaded"
+    },
+    {
+      "page": "existence",
+      "width": 1920,
+      "overflow": false,
+      "fonts": "loaded"
+    },
+    {
+      "page": "only-you",
+      "width": 320,
+      "overflow": false,
+      "fonts": "loaded"
+    },
+    {
+      "page": "only-you",
+      "width": 375,
+      "overflow": false,
+      "fonts": "loaded"
+    },
+    {
+      "page": "only-you",
+      "width": 768,
+      "overflow": false,
+      "fonts": "loaded"
+    },
+    {
+      "page": "only-you",
+      "width": 1280,
+      "overflow": false,
+      "fonts": "loaded"
+    },
+    {
+      "page": "only-you",
+      "width": 1440,
+      "overflow": false,
+      "fonts": "loaded"
+    },
+    {
+      "page": "only-you",
+      "width": 1920,
+      "overflow": false,
+      "fonts": "loaded"
+    },
+    {
+      "page": "specimen-garden",
+      "width": 320,
+      "overflow": false,
+      "fonts": "loaded"
+    },
+    {
+      "page": "specimen-garden",
+      "width": 375,
+      "overflow": false,
+      "fonts": "loaded"
+    },
+    {
+      "page": "specimen-garden",
+      "width": 768,
+      "overflow": false,
+      "fonts": "loaded"
+    },
+    {
+      "page": "specimen-garden",
+      "width": 1280,
+      "overflow": false,
+      "fonts": "loaded"
+    },
+    {
+      "page": "specimen-garden",
+      "width": 1440,
+      "overflow": false,
+      "fonts": "loaded"
+    },
+    {
+      "page": "specimen-garden",
+      "width": 1920,
+      "overflow": false,
+      "fonts": "loaded"
+    }
+  ],
+  "checks": [
+    "invalid input",
+    "normalized recipient",
+    "gift preview",
+    "clipboard share",
+    "direct preview URL",
+    "artwork switching",
+    "specimen drag",
+    "reduced motion",
+    "desktop action visible at 1280x800"
+  ],
+  "consoleErrors": [],
+  "scope": "Static design prototypes only; no real identity, payment or NFT."
+}

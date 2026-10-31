@@ -1,0 +1,21 @@
+{
+  "mode": "new sibling concept prototypes",
+  "preserve": [
+    "product truth in docs/PRODUCT.md",
+    "first-round pages",
+    "demo-only behavior"
+  ],
+  "replace": [
+    "generic gallery/catalogue primary layout",
+    "system display fonts"
+  ],
+  "files": [
+    "existence.html",
+    "only-you.html",
+    "specimen-garden.html",
+    "prototype.js"
+  ],
+  "delete": [],
+  "brand": "provisional; no approved DESIGN.md",
+  "context_loader": "impeccable launcher refused permission; existing project context read directly"
+}

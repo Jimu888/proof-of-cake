@@ -1,0 +1,34 @@
+[
+  {
+    "family": "League Spartan",
+    "source": "https://github.com/google/fonts/blob/main/ofl/leaguespartan/LeagueSpartan[wght].ttf",
+    "file": "league-spartan.ttf",
+    "bytes": 95116,
+    "licence": "SIL Open Font License; see FONT-LICENSES.txt",
+    "format": "Official variable TrueType; self-hosted without conversion"
+  },
+  {
+    "family": "Teko",
+    "source": "https://github.com/google/fonts/blob/main/ofl/teko/Teko[wght].ttf",
+    "file": "teko.ttf",
+    "bytes": 292108,
+    "licence": "SIL Open Font License; see FONT-LICENSES.txt",
+    "format": "Official variable TrueType; self-hosted without conversion"
+  },
+  {
+    "family": "Hanken Grotesk",
+    "source": "https://github.com/google/fonts/blob/main/ofl/hankengrotesk/HankenGrotesk[wght].ttf",
+    "file": "hanken.ttf",
+    "bytes": 132892,
+    "licence": "SIL Open Font License; see FONT-LICENSES.txt",
+    "format": "Official variable TrueType; self-hosted without conversion"
+  },
+  {
+    "family": "ZCOOL QingKe HuangYou",
+    "source": "https://fonts.googleapis.com/css2?family=ZCOOL+QingKe+HuangYou&text=%E4%B8%8D%E7%BB%99%E5%B8%82%E5%9C%BA%E3%80%82%E4%BD%A0&display=swap",
+    "file": "qingke.ttf",
+    "bytes": 7788,
+    "licence": "SIL Open Font License; see FONT-LICENSES.txt",
+    "format": "Official static TrueType, Chinese heading text subset"
+  }
+]
