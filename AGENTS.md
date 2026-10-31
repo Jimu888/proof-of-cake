@@ -12,3 +12,5 @@
 - Use one modular Next.js application initially. Do not add microservices or multiple chains speculatively.
 - Tests should protect boundaries: validation, authorization, idempotency, payment/chain state transitions.
 - Run npm run typecheck, npm test and npm run build before handoff. Report exact verification limits.
+
+- Platform identity and artwork aesthetics are separate. Cartoon, ink, pixel, colorful and monochrome art are all allowed contents. Do not derive the entire site theme from one artwork, recolor artwork to fit the shell, or assume single-artwork browsing is mandatory. The current design phase is image studies before frontend implementation.
