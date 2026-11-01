@@ -51,3 +51,7 @@
 ## 2026-11-01 · 像素方向细化
 
 用户喜欢礼物轮 C 的像素风，但指出像小人、蝴蝶结不明显。继续像素路线，新增宽环、短尾、镂空结扣、盒上礼结、不对称斜折五种轮廓；原 C 在 /brand-lab/gifts#c-pixel 保留。当前 /brand-lab 展示新五版。只认可方向，具体 Logo 尚未选定。记录在 design-demos/round-13-pixel-bows/。
+
+## 2026-11-01 · 不使用蝴蝶结的像素礼物符号
+
+用户要求换礼盒或其他能代表礼物的符号。保留像素风，新增封盒、立体包裹、开箱、吊牌与信封五组 SVG。当前 /brand-lab 展示新五版，/brand-lab/pixel-bows 保留上一轮。Logo 仍未获选，详见 design-demos/round-14-gift-symbols/。
