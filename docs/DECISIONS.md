@@ -43,3 +43,7 @@
 ## 2026-11-01 · Logo 再抽象
 
 用户要求再抽象一些。新增偏移、隐核、干涉、折叠、交叠五组原生 SVG；统一字标，减少字母、节点和徽章等直白符号，保留结构性的加密感。/brand-lab 为新方向，/brand-lab/crypto 与 /brand-lab/classic 保留前两轮。Logo 仍未选定。资料见 design-demos/round-11-abstract-logos/。
+
+## 2026-11-01 · 先识别礼物，再做加密变化
+
+用户要求从能识别礼品的符号出发，再加入加密学变化。当前 /brand-lab 改为蝴蝶结、礼盒与缎带的五组提案，采用切口、等角、像素、分段和交织。纯抽象轮保留在 /brand-lab/abstract，其余两轮也保留。具体设计见 design-demos/round-12-gift-crypto/。Mement 名称暂定，Logo 未获选。

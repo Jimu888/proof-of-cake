@@ -1,0 +1,34 @@
+[
+  {
+    "width": 1440,
+    "directions": 5,
+    "allImagesLoaded": true,
+    "noOverflow": true,
+    "anchorLinks": true,
+    "errors": []
+  },
+  {
+    "width": 768,
+    "directions": 5,
+    "allImagesLoaded": true,
+    "noOverflow": true,
+    "anchorLinks": true,
+    "errors": []
+  },
+  {
+    "width": 390,
+    "directions": 5,
+    "allImagesLoaded": true,
+    "noOverflow": true,
+    "anchorLinks": true,
+    "errors": []
+  },
+  {
+    "width": 320,
+    "directions": 5,
+    "allImagesLoaded": true,
+    "noOverflow": true,
+    "anchorLinks": true,
+    "errors": []
+  }
+]
