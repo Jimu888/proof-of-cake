@@ -47,3 +47,7 @@
 ## 2026-11-01 · 先识别礼物，再做加密变化
 
 用户要求从能识别礼品的符号出发，再加入加密学变化。当前 /brand-lab 改为蝴蝶结、礼盒与缎带的五组提案，采用切口、等角、像素、分段和交织。纯抽象轮保留在 /brand-lab/abstract，其余两轮也保留。具体设计见 design-demos/round-12-gift-crypto/。Mement 名称暂定，Logo 未获选。
+
+## 2026-11-01 · 像素方向细化
+
+用户喜欢礼物轮 C 的像素风，但指出像小人、蝴蝶结不明显。继续像素路线，新增宽环、短尾、镂空结扣、盒上礼结、不对称斜折五种轮廓；原 C 在 /brand-lab/gifts#c-pixel 保留。当前 /brand-lab 展示新五版。只认可方向，具体 Logo 尚未选定。记录在 design-demos/round-13-pixel-bows/。
