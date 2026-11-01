@@ -1,8 +1,8 @@
-# Proof of Cake · 项目底座
+# Mement · 项目底座
 
 面向加密用户的生日艺术礼物平台。平台及签约艺术家提供作品，用户以 Binance Agent ID（`.ai`）挑选、署名并直接赠送到朋友的钱包。
 
-**当前阶段：可运行的 CryptoGift 黑金前端 Demo 与接口骨架；不登录真实钱包、不收款、不铸造或发送 NFT。** 名称只是项目代号，可随时调整。
+**当前阶段：可运行的 Mement 黑金前端 Demo 与接口骨架；不登录真实钱包、不收款、不铸造或发送 NFT。** 产品名暂定 Mement；仓库名 proof-of-cake 保留，Logo 正在比较提案。
 
 先看 [当前完善版说明](design-demos/round-8-refinement/README.md)。用户已认可黑金 Demo 为第一版基线（Git 标签 v0.1-demo）；当前增加精品陈列、创作者合作、三维礼盒及 /brand-lab 品牌提案。
 
