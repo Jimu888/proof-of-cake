@@ -2,7 +2,7 @@
   "name": "proof-of-cake",
   "version": "0.1.0",
   "private": true,
-  "description": "Curated onchain birthday gifts \u2014 project foundation",
+  "description": "Curated onchain birthday gifts — project foundation",
   "engines": {
     "node": ">=24 <25"
   },
@@ -16,13 +16,15 @@
   "dependencies": {
     "next": "16.4.3",
     "react": "19.3.1",
-    "react-dom": "19.3.1"
+    "react-dom": "19.3.1",
+    "three": "^0.187.0"
   },
   "devDependencies": {
-    "typescript": "5.9.3",
-    "tsx": "4.23.15",
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0"
+    "@types/react-dom": "^19.0.0",
+    "@types/three": "^0.187.0",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3"
   }
 }

@@ -28,5 +28,10 @@
       false
     ]
   ],
-  "openBoxRevision": "Matching OPEN state of gift.png: same viewpoint and materials, lid and bow lifted above box, warm light from empty interior, full object, genuinely transparent alpha, no text, UI or floor."
+  "openBoxRevision": "Matching OPEN state of gift.png: same viewpoint and materials, lid and bow lifted above box, warm light from empty interior, full object, genuinely transparent alpha, no text, UI or floor.",
+  "obsidianTexture": {
+    "date": "2026-11-01",
+    "tool": "builtin ImageGen",
+    "prompt": "Production material texture for Three.js luxury gift box. Square flat orthographic macro swatch: polished near-black obsidian marble, extremely subtle thin champagne-gold mineral veins, dark charcoal complex stone texture, low contrast, no bright hotspots, no objects, no perspective, no edges, no text, no shadows, diffuse light, tileable PBR base color texture, black occupies 94 percent."
+  }
 }

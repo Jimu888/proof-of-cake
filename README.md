@@ -4,7 +4,7 @@
 
 **当前阶段：可运行的 CryptoGift 黑金前端 Demo 与接口骨架；不登录真实钱包、不收款、不铸造或发送 NFT。** 名称只是项目代号，可随时调整。
 
-先看 [黑金交互 Demo](design-demos/round-7-implementation/README.md)。用户已提供新的首页及收礼参考，并要求实现；过去六轮探索保留对照。
+先看 [当前完善版说明](design-demos/round-8-refinement/README.md)。用户已认可黑金 Demo 为第一版基线（Git 标签 v0.1-demo）；当前增加精品陈列、创作者合作、三维礼盒及 /brand-lab 品牌提案。
 
 ## 从这里开始
 
@@ -39,7 +39,7 @@ npm run build
 
 ```text
 design-demos/  三个独立前端设计原型、比较入口、概念素材与截图
-src/app/       正式网站与服务端接口入口，目前只有 JSON 接口
+src/app/       网站页面与服务端接口入口
 src/domain/    作品与赠送业务规则，独立于页面
 src/server/    仅在服务端运行的配置与保护
 contracts/     后续合约开发位置，当前没有可部署合约

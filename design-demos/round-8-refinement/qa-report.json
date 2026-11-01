@@ -1,0 +1,41 @@
+[
+  {
+    "width": 1440,
+    "twoWorks": true,
+    "noFilters": true,
+    "threeDrag": true,
+    "threeOpening": true,
+    "brandDirections": 3,
+    "runtimeErrors": []
+  },
+  {
+    "width": 768,
+    "twoWorks": true,
+    "noFilters": true,
+    "threeDrag": true,
+    "threeOpening": true,
+    "brandDirections": 3,
+    "runtimeErrors": []
+  },
+  {
+    "width": 390,
+    "twoWorks": true,
+    "noFilters": true,
+    "threeDrag": true,
+    "threeOpening": true,
+    "brandDirections": 3,
+    "runtimeErrors": []
+  },
+  {
+    "width": 320,
+    "twoWorks": true,
+    "noFilters": true,
+    "threeDrag": true,
+    "threeOpening": true,
+    "brandDirections": 3,
+    "runtimeErrors": []
+  },
+  {
+    "webglUnavailable": "image fallback passed"
+  }
+]
