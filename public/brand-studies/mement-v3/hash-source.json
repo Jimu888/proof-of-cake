@@ -1,0 +1,7 @@
+{
+  "input": "Mement",
+  "encoding": "UTF-8",
+  "algorithm": "SHA-256",
+  "digest": "96f7d5cec5d434ff51d5d19c4125bb7c0f126b82d0112f1044eadf9c006e2006",
+  "layout": "First 15 bits of digest, row-major 5 rows x 3 columns, mirrored horizontally to 5x5. Square width16, pitch20, origin12."
+}
