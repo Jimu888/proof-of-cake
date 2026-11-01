@@ -39,3 +39,7 @@
 ## 2026-11-01 · Logo 加入加密文化语言
 
 用户对上一轮仍不满意，要求更强的加密文化与密码学识别。新增签名曲线、Merkle 树、哈希纹样、密码朋克徽记、承诺封印五组 SVG 提案。/brand-lab 为新方向，/brand-lab/classic 保留上一轮。Mement 名称继续暂定，Logo 未选定。说明、哈希生成参数及检查结果在 design-demos/round-10-crypto-logos/。
+
+## 2026-11-01 · Logo 再抽象
+
+用户要求再抽象一些。新增偏移、隐核、干涉、折叠、交叠五组原生 SVG；统一字标，减少字母、节点和徽章等直白符号，保留结构性的加密感。/brand-lab 为新方向，/brand-lab/crypto 与 /brand-lab/classic 保留前两轮。Logo 仍未选定。资料见 design-demos/round-11-abstract-logos/。
