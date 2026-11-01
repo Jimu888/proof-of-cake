@@ -1,0 +1,32 @@
+{
+  "tool": "builtin ImageGen",
+  "date": "2026-11-01",
+  "assets": [
+    [
+      "hero",
+      "Use case: stylized-concept. Production web asset for a premium crypto art gifting site. Match reference mood: near-black cinematic space, obsidian rock, warm champagne gold light, precise photoreal 3D materials. No text, logos, UI, watermarks. Wide landscape 1536x1024. Huge luminous ivory eclipse ring occupying RIGHT half, black planet dark center, rough floating black meteorites, obsidian rocky foreground bottom edge with restrained golden light reflections. LEFT 40 percent nearly black empty negative space for HTML headline. Luxurious mysterious atmospheric render, crisp details not cartoon. No gift box.",
+      false
+    ],
+    [
+      "gift",
+      "Use case: stylized-concept. Production web asset for a premium crypto art gifting site. Match reference mood: near-black cinematic space, obsidian rock, warm champagne gold light, precise photoreal 3D materials. No text, logos, UI, watermarks. One floating CLOSED obsidian black cube gift box with fine natural marble veins and luminous champagne gold ribbon and elegant bow, three quarter perspective, centered entire object with generous padding. Isolated on genuinely TRANSPARENT background with no floor or rectangular scene. Gold reflected edges. This will be animated using CSS.",
+      true
+    ],
+    [
+      "cat",
+      "Use case: stylized-concept. Production web asset for a premium crypto art gifting site. Match reference mood: near-black cinematic space, obsidian rock, warm champagne gold light, precise photoreal 3D materials. No text, logos, UI, watermarks. One charming orange and cream cat astronaut, white ceramic space suit, clear spherical helmet, subtle gold equipment details, three quarter full body standing pose looking upward with curiosity, sculptural collectible quality. Entire object isolated on genuinely TRANSPARENT background with generous padding. No platform no scene.",
+      true
+    ],
+    [
+      "flower",
+      "Use case: stylized-concept. Production web asset for a premium crypto art gifting site. Match reference mood: near-black cinematic space, obsidian rock, warm champagne gold light, precise photoreal 3D materials. No text, logos, UI, watermarks. Single ethereal white translucent glass flower sculpture, macro petal architecture, dark charcoal background, soft silver light with restrained golden stamen. A fine art collectible image, square composition.",
+      false
+    ],
+    [
+      "portal",
+      "Use case: stylized-concept. Production web asset for a premium crypto art gifting site. Match reference mood: near-black cinematic space, obsidian rock, warm champagne gold light, precise photoreal 3D materials. No text, logos, UI, watermarks. Monumental black stone architectural portal on a calm reflective ocean, tiny solitary human silhouette gazing at a pale luminous planet on horizon. Strict geometric composition, cinematic architectural photography, wide landscape, muted ivory light.",
+      false
+    ]
+  ],
+  "openBoxRevision": "Matching OPEN state of gift.png: same viewpoint and materials, lid and bow lifted above box, warm light from empty interior, full object, genuinely transparent alpha, no text, UI or floor."
+}

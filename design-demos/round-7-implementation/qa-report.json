@@ -1,0 +1,26 @@
+[
+  {
+    "width": 1440,
+    "flow": "pass",
+    "overflow": false,
+    "consoleErrors": []
+  },
+  {
+    "width": 768,
+    "flow": "pass",
+    "overflow": false,
+    "consoleErrors": []
+  },
+  {
+    "width": 390,
+    "flow": "pass",
+    "overflow": false,
+    "consoleErrors": []
+  },
+  {
+    "width": 320,
+    "flow": "pass",
+    "overflow": false,
+    "consoleErrors": []
+  }
+]

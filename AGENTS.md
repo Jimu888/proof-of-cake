@@ -13,4 +13,14 @@
 - Tests should protect boundaries: validation, authorization, idempotency, payment/chain state transitions.
 - Run npm run typecheck, npm test and npm run build before handoff. Report exact verification limits.
 
-- Platform identity and artwork aesthetics are separate. Cartoon, ink, pixel, colorful and monochrome art are all allowed contents. Do not derive the entire site theme from one artwork, recolor artwork to fit the shell, or assume single-artwork browsing is mandatory. The current design phase is image studies before frontend implementation.
+- Platform identity and artwork aesthetics are separate. Cartoon, ink, pixel, colorful and monochrome art are all allowed contents. Do not derive the entire site theme from one artwork, recolor artwork to fit the shell, or assume single-artwork browsing is mandatory. The user authorized a black-and-gold interactive frontend based on two new references on 2026-11-01. Keep all wallet and chain features demo-only.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
