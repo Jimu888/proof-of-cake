@@ -1,0 +1,26 @@
+{
+  "file": "birthday.glb",
+  "bytes": 18859516,
+  "sha256": "7ae337ac44db8f775e75d35a593f4eb36eb1f2dd28d13cf5680e3aac6a71f965",
+  "imported": "2026-11-02",
+  "source": "User-selected birthday.glb; copied without modification",
+  "extensionsRequired": [
+    "KHR_draco_mesh_compression"
+  ],
+  "embeddedTextures": true,
+  "animationClips": 0,
+  "view": {
+    "camera": [
+      7.295445919,
+      4.099999905,
+      11.625529289
+    ],
+    "target": [
+      0.6577835083,
+      1.2803816795,
+      0.8092823029
+    ],
+    "fov": 32.1334948749,
+    "yawLimitDegrees": 15
+  }
+}

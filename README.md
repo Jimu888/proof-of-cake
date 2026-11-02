@@ -4,6 +4,8 @@
 
 **当前阶段：可运行的 Mement 黑金前端 Demo 与接口骨架；不登录真实钱包、不收款、不铸造或发送 NFT。** 产品名暂定 Mement；仓库名 proof-of-cake 保留，Logo 正在比较提案。
 
+生日礼物版本见 [三维生日演示交付说明](docs/releases/BIRTHDAY_DEMO.md)，入口 `/receive`；旧流程在 `/receive/demo`。
+
 先看 [当前完善版说明](design-demos/round-8-refinement/README.md)。用户已认可黑金 Demo 为第一版基线（Git 标签 v0.1-demo）；当前增加精品陈列、创作者合作、三维礼盒及 /brand-lab 品牌提案。
 
 ## 从这里开始

@@ -1,0 +1,32 @@
+[
+  {
+    "url": "http://127.0.0.1:3190/receive",
+    "width": 1440,
+    "modelLoaded": true,
+    "dragChangesRender": true,
+    "noteDialog": true,
+    "errors": [],
+    "failedRequests": []
+  },
+  {
+    "url": "http://127.0.0.1:3190/receive",
+    "width": 390,
+    "modelLoaded": true,
+    "dragChangesRender": true,
+    "noteDialog": true,
+    "errors": [],
+    "failedRequests": []
+  },
+  {
+    "url": "http://127.0.0.1:3191/",
+    "width": 390,
+    "modelLoaded": true,
+    "dragChangesRender": true,
+    "noteDialog": true,
+    "errors": [],
+    "failedRequests": []
+  },
+  {
+    "fullscreen": "passed in isolated browser"
+  }
+]

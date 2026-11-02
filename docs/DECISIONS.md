@@ -55,3 +55,7 @@
 ## 2026-11-01 · 不使用蝴蝶结的像素礼物符号
 
 用户要求换礼盒或其他能代表礼物的符号。保留像素风，新增封盒、立体包裹、开箱、吊牌与信封五组 SVG。当前 /brand-lab 展示新五版，/brand-lab/pixel-bows 保留上一轮。Logo 仍未获选，详见 design-demos/round-14-gift-symbols/。
+
+## 2026-11-02 · 第一份 GLB 生日礼物
+
+用户提供 birthday.glb，接入默认收礼页，作为给朋友的提前演示版。保留原镜头、材质修正与左右15度查看；新增加载进度、重试、静态预览、全屏与赠言弹窗。/receive/demo 保留旧选品预览，生日页不读取会话草稿。提供独立静态导出 npm run build:birthday。个性化文案与互联网发布方式待回复；当前未发布公网链接、未上链。详见 docs/releases/BIRTHDAY_DEMO.md。

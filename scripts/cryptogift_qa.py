@@ -19,7 +19,7 @@ with sync_playwright() as p:
   page.get_by_role('button',name='复位',exact=True).click()
   if width in [1440,390]:page.screenshot(path=str(root/f'screenshots/three-{width}.png'))
   page.get_by_role('button',name='返回渲染图',exact=True).click();assert page.locator('canvas').count()==0
-  page.locator('.featured-art').first.click();page.get_by_role('button',name='定制这份礼物').click();page.get_by_role('button',name='下一步',exact=True).click();page.locator('#recipient').fill('curiosity.ai');page.get_by_role('button',name='预览收礼体验').click();page.wait_for_url('**/receive');page.get_by_role('button',name='试试三维礼盒',exact=False).click();page.locator('[data-renderer="ready"]').wait_for(timeout=25000);page.get_by_role('button',name='点击打开').click();page.wait_for_timeout(600)
+  page.locator('.featured-art').first.click();page.get_by_role('button',name='定制这份礼物').click();page.get_by_role('button',name='下一步',exact=True).click();page.locator('#recipient').fill('curiosity.ai');page.get_by_role('button',name='预览收礼体验').click();page.wait_for_url('**/receive/demo');page.get_by_role('button',name='试试三维礼盒',exact=False).click();page.locator('[data-renderer="ready"]').wait_for(timeout=25000);page.get_by_role('button',name='点击打开').click();page.wait_for_timeout(600)
   if width in [1440,390]:page.screenshot(path=str(root/f'screenshots/open-3d-{width}.png'))
   page.get_by_role('button',name='查看礼物',exact=True).click();assert page.locator('.detail-copy').is_visible()
   page.goto('http://127.0.0.1:3190/brand-lab');page.evaluate('document.fonts.ready');assert page.locator('.logo-direction').count()==5
