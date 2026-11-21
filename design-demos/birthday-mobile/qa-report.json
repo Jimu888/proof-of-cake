@@ -1,0 +1,90 @@
+[
+  {
+    "viewport": [
+      320,
+      568
+    ],
+    "mobile": true,
+    "touchDrag": true,
+    "noOverflow": true,
+    "readableLetter": true,
+    "errors": []
+  },
+  {
+    "viewport": [
+      360,
+      640
+    ],
+    "mobile": true,
+    "touchDrag": true,
+    "noOverflow": true,
+    "readableLetter": true,
+    "errors": []
+  },
+  {
+    "viewport": [
+      390,
+      844
+    ],
+    "mobile": true,
+    "touchDrag": true,
+    "noOverflow": true,
+    "readableLetter": true,
+    "errors": []
+  },
+  {
+    "viewport": [
+      430,
+      932
+    ],
+    "mobile": true,
+    "touchDrag": true,
+    "noOverflow": true,
+    "readableLetter": true,
+    "errors": []
+  },
+  {
+    "viewport": [
+      667,
+      375
+    ],
+    "mobile": true,
+    "touchDrag": true,
+    "noOverflow": true,
+    "readableLetter": true,
+    "errors": []
+  },
+  {
+    "viewport": [
+      844,
+      390
+    ],
+    "mobile": true,
+    "touchDrag": true,
+    "noOverflow": true,
+    "readableLetter": true,
+    "errors": []
+  },
+  {
+    "viewport": [
+      768,
+      1024
+    ],
+    "mobile": true,
+    "touchDrag": true,
+    "noOverflow": true,
+    "readableLetter": true,
+    "errors": []
+  },
+  {
+    "viewport": [
+      1440,
+      900
+    ],
+    "mobile": false,
+    "touchDrag": false,
+    "noOverflow": true,
+    "readableLetter": true,
+    "errors": []
+  }
+]

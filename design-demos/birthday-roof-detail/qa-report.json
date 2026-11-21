@@ -1,0 +1,51 @@
+{
+  "checks": [
+    {
+      "viewport": [
+        390,
+        844
+      ],
+      "mobile": true,
+      "idlePixelRatio": 2.5,
+      "detailZoom": true,
+      "qualityRestored": true,
+      "noPageErrors": true
+    },
+    {
+      "viewport": [
+        320,
+        568
+      ],
+      "mobile": true,
+      "idlePixelRatio": 2.5,
+      "detailZoom": true,
+      "qualityRestored": true,
+      "noPageErrors": true
+    },
+    {
+      "viewport": [
+        844,
+        390
+      ],
+      "mobile": true,
+      "idlePixelRatio": 2.5,
+      "detailZoom": true,
+      "qualityRestored": true,
+      "noPageErrors": true
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "mobile": false,
+      "idlePixelRatio": 1.7568209223157663,
+      "detailZoom": true,
+      "qualityRestored": true,
+      "noPageErrors": true
+    }
+  ],
+  "modelUnchanged": true,
+  "modelSHA256": "1da4cb77d6b0a9a1f5a572f9525f49486d2c19c4e73413fc75e1a1e07ec1b68d",
+  "physicalDeviceTested": false
+}

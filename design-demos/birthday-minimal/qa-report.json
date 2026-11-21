@@ -1,0 +1,46 @@
+[
+  {
+    "url": "http://127.0.0.1:3190/receive",
+    "width": 1440,
+    "noChromeOrToolbar": true,
+    "giftClickAndKeyboardOpen": true,
+    "letterVisibleWithSignature": true,
+    "noDuplicateHtmlSky": true,
+    "noOverflow": true,
+    "sameCanvas": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:3190/receive",
+    "width": 390,
+    "noChromeOrToolbar": true,
+    "giftClickAndKeyboardOpen": true,
+    "letterVisibleWithSignature": true,
+    "noDuplicateHtmlSky": true,
+    "noOverflow": true,
+    "sameCanvas": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:3191/",
+    "width": 390,
+    "noChromeOrToolbar": true,
+    "giftClickAndKeyboardOpen": true,
+    "letterVisibleWithSignature": true,
+    "noDuplicateHtmlSky": true,
+    "noOverflow": true,
+    "sameCanvas": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:3190/receive",
+    "width": 320,
+    "noChromeOrToolbar": true,
+    "giftClickAndKeyboardOpen": true,
+    "letterVisibleWithSignature": true,
+    "noDuplicateHtmlSky": true,
+    "noOverflow": true,
+    "sameCanvas": true,
+    "errors": []
+  }
+]

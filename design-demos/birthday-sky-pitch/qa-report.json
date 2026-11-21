@@ -1,0 +1,42 @@
+{
+  "checks": [
+    {
+      "viewport": [
+        390,
+        844
+      ],
+      "extraStars": 28,
+      "sealedTwinkle": true,
+      "pitchDegrees": 7,
+      "touchVerticalRotation": true,
+      "shortScreenScroll": false,
+      "errors": []
+    },
+    {
+      "viewport": [
+        320,
+        568
+      ],
+      "extraStars": 28,
+      "sealedTwinkle": true,
+      "pitchDegrees": 7,
+      "touchVerticalRotation": false,
+      "shortScreenScroll": true,
+      "errors": []
+    },
+    {
+      "viewport": [
+        1440,
+        900
+      ],
+      "extraStars": 28,
+      "sealedTwinkle": true,
+      "pitchDegrees": 7,
+      "touchVerticalRotation": false,
+      "shortScreenScroll": false,
+      "errors": []
+    }
+  ],
+  "modelUnchanged": true,
+  "physicalDeviceTested": false
+}

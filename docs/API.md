@@ -4,9 +4,9 @@
 
 | 方法与路径 | 用途 |
 | --- | --- |
-| GET / | 返回当前阶段及提示，尚无产品页面 |
+| GET / | 精选作品首页与赠礼入口 |
 | GET /api/health | 检查服务启动，不代表链上服务健康 |
-| GET /api/catalog | 返回占位作品与预设祝福，无真实价格 |
+| GET /api/catalog | 统一的概念作品、示例 BNB 价格、发行规则与预设祝福 |
 | POST /api/demo/gifts | 校验输入并创建临时演示记录，不发生外部操作 |
 
 ```sh
@@ -19,6 +19,14 @@ curl http://127.0.0.1:3000/api/demo/gifts \
 成功返回 201；同一请求标识重复发送同一内容返回 200 且 ID 不变；重用标识但更改内容返回 400。输入名字只校验格式，不查询其存在或所有权。演示存储单进程、上限 1000 条、有效期一小时；重启或过期后不再保证去重。禁止公开部署此无登录演示接口。
 
 错误：400 无效输入/JSON；413 内容过长；415 请求类型错误；503 非 demo 模式。当前长度检查在读取后执行，公开部署前必须增加网关级流式大小限制与限流。
+
+## 平台订单预览
+
+POST /api/demo/orders 接收 artworkId、recipient、message，要求 16–100 位 Idempotency-Key。recipient 是完整 .ai 名称或 BSC 地址，只校验输入格式，不代表解析和控制权证明。无需额外勾选上链确认。旧版 publicMessageAccepted 字段兼容接收并忽略。
+
+返回 order 显示快照、replay 与 sharePath。创建为 201，重放为 200。拒绝浏览器提交价格、分成、身份、状态或规则字段。分成只在服务端存储。SQLite 持久化与边界见 [平台演示](releases/PLATFORM_DEMO.md)。订单状态始终为 demo_preview，不进入 paid、minted 或 delivered。
+
+GET /gift/{shareToken} 服务端读取有效演示快照，未知或过期链接显示退路。正式礼物接口和支付流程仍待实现。
 
 ## 规划接口（尚未实现）
 

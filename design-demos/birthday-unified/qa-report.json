@@ -1,0 +1,38 @@
+[
+  {
+    "url": "http://127.0.0.1:3190/receive",
+    "width": 1440,
+    "oneCanvas": true,
+    "sameSkyBeforeAfter": true,
+    "noHeightJump": true,
+    "noDialog": true,
+    "starsActuallyChange": true,
+    "starsNeverDimBelowOff": true,
+    "dragAndReset": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:3190/receive",
+    "width": 390,
+    "oneCanvas": true,
+    "sameSkyBeforeAfter": true,
+    "noHeightJump": true,
+    "noDialog": true,
+    "starsActuallyChange": true,
+    "starsNeverDimBelowOff": true,
+    "dragAndReset": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:3191/",
+    "width": 390,
+    "oneCanvas": true,
+    "sameSkyBeforeAfter": true,
+    "noHeightJump": true,
+    "noDialog": true,
+    "starsActuallyChange": true,
+    "starsNeverDimBelowOff": true,
+    "dragAndReset": true,
+    "errors": []
+  }
+]

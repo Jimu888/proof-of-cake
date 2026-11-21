@@ -1,0 +1,5 @@
+{
+  "waitsForModelWhenSlow": true,
+  "fullscreenFallbackFillsViewport": true,
+  "escapeClosesFallback": true
+}

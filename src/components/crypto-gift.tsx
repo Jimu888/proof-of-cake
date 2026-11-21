@@ -1,38 +1,49 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
 import dynamic from 'next/dynamic';
+import {describeArtworkPolicy} from '../domain/artwork-policy';
+import {catalog, artworkImage, type Artwork} from '../domain/catalog';
 const GiftSculpture=dynamic(()=>import('./gift-sculpture'),{ssr:false,loading:()=> <p className="three-loading">正在准备三维预览…</p>});
 const A='/cryptogift/';
-const works=[
- {id:'cat',name:'Space Cat',cn:'宇航猫',tag:'数字雕塑概念',image:'cat.png',desc:'把好奇心带上，去更远的地方。',price:'0.06',cutout:true},
- {id:'flower',name:'Quiet Bloom',cn:'流动的花',tag:'生成艺术',image:'flower.png',desc:'为平凡的日子，留下一朵不会凋谢的花。',price:'0.07',cutout:false},
- {id:'portal',name:'Beyond the Moment',cn:'时光之门',tag:'纪念',image:'portal.png',desc:'有些时刻，值得拥有一个更长的回响。',price:'0.04',cutout:false},
- {id:'sheep',name:'Counting Dreams',cn:'今天不数羊',tag:'艺术',image:'ink-sheep.png',desc:'今晚，把心事交给月亮。',price:'0.03',cutout:false}
-];
+const asWork=(work: Artwork)=>({...work,cn:work.title,tag:work.media==='image'?'数字图像概念':'数字艺术',desc:work.description});
+const works=catalog.map(asWork);
 type Work=typeof works[number];
 type Draft={art:string;to:string;message:string};
 const defaultMessage='送你一只宇航猫，\n愿你在更大的世界里，\n一直保持好奇。';
 function Arrow(){return <span aria-hidden="true">↗</span>}
-export default function Mement({receive=false}:{receive?:boolean}){
- const [selected,setSelected]=useState<Work|null>(null),[notice,setNotice]=useState(''),[threeD,setThreeD]=useState(false);
- const [step,setStep]=useState(0),[to,setTo]=useState(''),[message,setMessage]=useState(defaultMessage),[error,setError]=useState('');
+export default function Mement({receive=false, artworks=catalog}:{receive?:boolean; artworks?:readonly Artwork[]}){
+ const [notice,setNotice]=useState(''),[threeD,setThreeD]=useState(false);
+ const [welcome,setWelcome]=useState(false);
+ useEffect(()=>{
+   if(receive||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+   try { if(sessionStorage.getItem('mement-welcome'))return; sessionStorage.setItem('mement-welcome','1'); } catch { return; }
+   setWelcome(true);
+   const timeout=setTimeout(()=>setWelcome(false),2400);
+   const dismiss=(event:KeyboardEvent)=>{if(event.key==='Escape'||event.key==='Tab')setWelcome(false);};
+   window.addEventListener('keydown',dismiss);
+   return ()=>{clearTimeout(timeout);window.removeEventListener('keydown',dismiss);};
+ },[receive]);
+ const [to,setTo]=useState(''),[message,setMessage]=useState(defaultMessage);
  const [phase,setPhase]=useState<'sealed'|'opening'|'revealed'|'detail'|'letter'|'full'>('sealed'),[recipientWork,setRecipientWork]=useState(works[0]),[saved,setSaved]=useState(false);
- const timer=useRef<ReturnType<typeof setTimeout>|null>(null),dialogRef=useRef<HTMLElement>(null),triggerRef=useRef<HTMLElement|null>(null);
+ const timer=useRef<ReturnType<typeof setTimeout>|null>(null);
  useEffect(()=>{if(!receive)return;try{const d=JSON.parse(sessionStorage.getItem('cryptogift-draft')||'null') as Draft|null;if(d){setRecipientWork(works.find(w=>w.id===d.art)||works[0]);setTo(d.to);setMessage(d.message);}setSaved(sessionStorage.getItem('cryptogift-saved')==='yes');}catch{} return ()=>{if(timer.current)clearTimeout(timer.current);};},[receive]);
  useEffect(()=>{if(!notice)return;const t=setTimeout(()=>setNotice(''),3500);return()=>clearTimeout(t)},[notice]);
- useEffect(()=>{if(!selected)return;triggerRef.current=document.activeElement as HTMLElement;const prev=document.body.style.overflow;document.body.style.overflow='hidden';dialogRef.current?.focus();const key=(e:KeyboardEvent)=>{if(e.key==='Escape')setSelected(null);if(e.key==='Tab'){const all=dialogRef.current?.querySelectorAll<HTMLElement>('button,input,textarea,a[href]');if(!all?.length)return;const first=all[0],last=all[all.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}};document.addEventListener('keydown',key);return()=>{document.body.style.overflow=prev;document.removeEventListener('keydown',key);triggerRef.current?.focus();}},[selected]);
- function choose(w:Work){setSelected(w);setMessage(w.id==='cat'?defaultMessage:'送你一份小小的心意，\n愿你每一年，都有值得期待的风景。');setStep(0);setError('');}
- function preview(){if(!/^(?:[a-zA-Z0-9]{3,15}(?:\.ai)?|0x[a-fA-F0-9]{40})$/.test(to.trim())){setError('请输入 3–15 位字母或数字的 .ai 名称，或完整钱包地址。');return;}try{sessionStorage.setItem('cryptogift-draft',JSON.stringify({art:selected?.id||'cat',to:to.trim(),message}));window.location.assign('/receive/demo');}catch{setError('浏览器暂时无法保存预览，请允许此网站使用会话存储。');}}
  function open(){if(phase!=='sealed')return;setPhase('opening');timer.current=setTimeout(()=>setPhase('revealed'),window.matchMedia('(prefers-reduced-motion: reduce)').matches?50:1900);}
- const featured=[works[0],works[3]];
+ const featured=artworks.map(asWork);
  return <>
  <a className="skip" href="#main">跳到内容</a>
- <header className="header"><a className="brand" href="/" aria-label="Mement 首页"><span className="brand-star">✦</span> Mement</a>{!receive&&<nav aria-label="主导航"><a className="active" href="#gifts">礼物 <small>Gifts</small></a><a href="#artists">创作者</a><a href="/receive">收礼体验 <span>↗</span></a></nav>}<div className="header-end"><span className="demo-badge"><i/> 交互演示</span></div></header>
+ <header className="header"><a className="brand" href="/" aria-label="Mement 首页"><span className="brand-star">✦</span> Mement</a>{!receive&&<nav aria-label="主导航"><a className="active" href="#gifts">礼物 <small>Gifts</small></a><a href="/creators/apply">创作者申请</a><a href="/receive">收礼体验 <span>↗</span></a></nav>}<div className="header-end"><a className="demo-badge wallet-entry" href="/wallet">钱包登录 ↗</a></div></header>
  {!receive?<main id="main">
- <section className="hero"><img className="hero-bg" src={A+'hero.png'} alt=""/><div className="hero-shade"/><aside className="hero-aside">A gift<br/>for a<br/>more<br/>open<br/>world<span>—</span></aside><div className="hero-copy"><p className="eyebrow">A GIFT BEYOND THE MOMENT</p><h1><span className="bracket">[</span> GIFTS<br/>LIVE LONGER<br/>ON CHAIN<span className="gold-period">.</span></h1><p className="hero-description">不止是一份礼物。<br/>让重要的心意，有一个长久的去处。</p><a className="button primary" href="#gifts">探索礼物 <Arrow/></a></div><div className={"hero-object "+(threeD?"hero-three":"")} >{threeD?<GiftSculpture/>:<><div className="glass-cube"/><img src={A+'gift.png'} alt="悬浮在月光中的黑曜石金色缎带礼盒"/></>}<button className="view-mode" onClick={()=>setThreeD(!threeD)}>{threeD?'返回渲染图':'旋转礼盒 · 3D'}</button></div><div className="hero-bottom"><span>ART × CONNECTION × ON CHAIN</span><span>SCROLL TO DISCOVER ↓</span></div></section>
- <section className="section first-edition" id="gifts"><div className="section-heading"><div><p className="eyebrow">A SMALL, CONSIDERED SELECTION</p><h2>不必很多，<br/>只要那一件刚刚好。</h2></div><p className="selection-intro">从少量作品开始，认真呈现每一份创作。<br/>为一个特别的人，挑一份有来由的礼物。</p></div><div className="curated-pair">{featured.map((w,i)=><article className={'featured-work featured-work-'+i} key={w.id}><button className="featured-art" onClick={()=>choose(w)} aria-label={'查看'+w.cn}><img src={A+w.image} className={w.cutout?'cutout':''} alt={w.cn}/><span>查看作品 ↗</span></button><div className="featured-caption"><div><p className="eyebrow">{i===0?'FOR THE CURIOUS':'FOR A QUIET NIGHT'}</p><h3>{w.cn}</h3><p>{w.desc}</p></div><button className="text-link" onClick={()=>choose(w)}>为 TA 挑选 <Arrow/></button></div></article>)}</div><p className="catalog-note">首期陈列示意 · 作品与价格用于演示，正式作品将逐件发布。</p></section>
- <section className="manifesto"><img src={A+'portal.png'} alt="黑色石门外的星球与海面"/><div><p className="eyebrow">LESS TRANSACTION. MORE CONNECTION.</p><h2>把重要的时刻，<br/>封装进链上。</h2><p>作品因心意而特别，<br/>礼物因你而有意义。</p><a className="button outline" href="/receive">体验打开一份礼物 <Arrow/></a></div></section>
- <section className="section creator-section" id="artists"><div className="creator-heading"><p className="eyebrow">MADE BY SOMEONE. MEANT FOR SOMEONE.</p><h2>一份礼物的背后，<br/>应该看得见创作它的人。</h2><p>我们从邀请开始，与艺术家和独立创作者一起，<br/>把有个人表达的作品，变成值得赠送的数字艺术。</p></div><div className="creator-principles"><article><span>01 / 邀请创作</span><h3>少量作品，认真选择。</h3><p>与创作者共同策划作品。每次呈现，都保留作品本来的风格与故事。</p></article><article><span>02 / 作品成为礼物</span><h3>因赠送，建立连接。</h3><p>作品以 NFT 的形式被购买并赠送，让创作走进一个人的重要时刻。</p></article><article><span>03 / 收入回到创作者</span><h3>主要销售收入归创作者。</h3><p>平台收取一部分服务与运营费用，持续支持作品呈现与赠礼体验。</p></article></div><details className="creator-details"><summary>了解创作合作 <span>＋</span></summary><div><p>采用邀请与共同策划的合作方式；创作方向、展示授权、作品定价及分成比例，在发布前与创作者逐项确认。</p><p>创作者获得主要销售收入。具体比例与结算方式尚未确定，本演示暂不接受投稿或签约。</p></div></details></section>
+ {welcome && <div className="catalog-welcome" onClick={() => setWelcome(false)}>
+   <img src={A+'hero.png'} alt=""/><button type="button" onClick={() => setWelcome(false)}>跳过开场 ↗</button>
+ </div>}
+ <section className="catalog-gallery" id="gifts">
+   <div className="catalog-heading"><h1>挑选礼物</h1><span>{featured.length} 件作品</span></div>
+   <div className="catalog-grid">{featured.map((work,index) => <a className="catalog-item" href={'/gifts/'+work.id} key={work.id}>
+     <div className="catalog-frame"><img src={artworkImage(work,true)} alt="" loading={index < 4 ? 'eager' : 'lazy'}/></div>
+     <div className="catalog-caption"><div><h2>{work.title}</h2><p>{work.artist}</p></div><Arrow/></div>
+   </a>)}</div>
+ </section>
 
  </main>:<main id="main" className={'receive receive-'+phase}>
  <div className="receive-atmosphere"/><div className="orbit orbit-one"/><div className="orbit orbit-two"/><div className="floor-glow"/>
@@ -40,10 +51,10 @@ export default function Mement({receive=false}:{receive?:boolean}){
  phase==='revealed'?<section className="unboxing reveal"><p className="eyebrow">A LITTLE CURIOSITY. A BIGGER WORLD.</p><div className="revealed-frame"><img src={A+recipientWork.image} className={recipientWork.cutout?'cutout':''} alt={recipientWork.cn}/></div><h1>一份为你挑选的心意</h1><p>{recipientWork.name} / {recipientWork.cn}</p><button className="button primary" onClick={()=>setPhase('detail')}>查看礼物 <Arrow/></button><small>演示礼物 · 尚未铸造或链上发送</small></section>:
  phase==='letter'?<section className="letter-view"><button className="back" onClick={()=>setPhase('detail')}>← 返回礼物</button><div className="letter"><span className="eyebrow">A NOTE, JUST FOR YOU</span><p>{message||'有些心意，不必用语言表达。'}</p><span className="signature">— Jimu</span></div><button className="button outline" onClick={()=>{try{sessionStorage.setItem('cryptogift-saved',saved?'no':'yes');setSaved(!saved)}catch{setNotice('浏览器无法保存收藏。')}}}>{saved?'已收藏这份心意 ♥':'收藏这份心意 ♡'}</button><small>收藏仅保存在本次浏览器会话中。</small></section>:
  phase==='full'?<section className="full-art"><button className="back" onClick={()=>setPhase('detail')}>← 返回详情</button><img src={A+recipientWork.image} alt={recipientWork.cn}/><div><h1>{recipientWork.name}</h1><p>{recipientWork.cn} · 二维作品预览</p></div></section>:
- <section className="gift-detail"><button className="back" onClick={()=>setPhase('revealed')}>← 返回</button><div className="detail-display"><div className="revealed-frame"><img src={A+recipientWork.image} className={recipientWork.cutout?'cutout':''} alt={recipientWork.cn}/></div><button className="text-link" onClick={()=>setPhase('full')}>完整欣赏 ↗</button></div><div className="detail-copy"><p className="eyebrow">A GIFT, JUST FOR YOU</p><h1>{recipientWork.name}</h1><h2>{recipientWork.cn}</h2><p>{recipientWork.desc}</p><dl><div><dt>From</dt><dd>Jimu（演示署名）</dd></div><div><dt>To</dt><dd>{to||'you.ai（示例）'}</dd></div><div><dt>状态</dt><dd>演示预览 · 未上链</dd></div><div><dt>作品类型</dt><dd>{recipientWork.tag}</dd></div></dl><button className="button primary" onClick={()=>setPhase('letter')}>读一读 TA 的留言 <Arrow/></button></div></section>}
+ <section className="gift-detail"><button className="back" onClick={()=>setPhase('revealed')}>← 返回</button><div className="detail-display"><div className="revealed-frame"><img src={A+recipientWork.image} className={recipientWork.cutout?'cutout':''} alt={recipientWork.cn}/></div><button className="text-link" onClick={()=>setPhase('full')}>完整欣赏 ↗</button></div><div className="detail-copy"><p className="eyebrow">A GIFT, JUST FOR YOU</p><h1>{recipientWork.name}</h1><h2>{recipientWork.cn}</h2><p>{recipientWork.desc}</p><dl><div><dt>From</dt><dd>Jimu（演示署名）</dd></div><div><dt>To</dt><dd>{to||'you.ai（示例）'}</dd></div><div><dt>状态</dt><dd>演示预览 · 未上链</dd></div><div><dt>作品类型</dt><dd>{recipientWork.tag}</dd></div><div><dt>发行规则</dt><dd>{describeArtworkPolicy(recipientWork.policy)}</dd></div></dl><button className="button primary" onClick={()=>setPhase('letter')}>读一读 TA 的留言 <Arrow/></button></div></section>}
  <a className="receive-home" href="/">也为一个人挑选礼物 ↗</a></main>}
- <footer><a className="brand" href="/"><span className="brand-star">✦</span> Mement</a><span>A little more than a gift.</span><span><a href="/brand-lab">名字与 Logo 提案 ↗</a><br/>设计演示 · 钱包与链上功能尚未接入</span></footer>
- {selected&&<div className="modal-backdrop" onClick={e=>{if(e.target===e.currentTarget)setSelected(null)}}><section className="gift-modal" role="dialog" aria-modal="true" aria-labelledby="dialog-title" tabIndex={-1} ref={dialogRef}><button className="close" onClick={()=>setSelected(null)} aria-label="关闭作品详情">×</button><div className="modal-art"><img src={A+selected.image} className={selected.cutout?'cutout':''} alt={selected.cn}/><span>{selected.name} / ART PREVIEW</span></div><div className="modal-info"><p className="eyebrow">{step===0?'SELECTED FOR SOMEONE':`PERSONALIZE / 0${step}`}</p><h2 id="dialog-title">{step===0?selected.name:step===1?'把心意写下来。':'寄给那个特别的人。'}</h2>{step===0?<><h3>{selected.cn}</h3><p>{selected.desc}</p><div className="price">{selected.price} ETH <small>演示价格</small></div><button className="button primary" onClick={()=>setStep(1)}>定制这份礼物 <Arrow/></button><p className="fine">仅预览，不会扣款或发送 NFT。</p></>:step===1?<><label htmlFor="message">想对 TA 说的话</label><textarea id="message" maxLength={280} value={message} onChange={e=>setMessage(e.target.value)} rows={6}/><span className="character-count">{message.length} / 280</span><p className="fine">留言仅用于本地预览，不会公开或写入区块链。</p><button className="button primary" onClick={()=>setStep(2)}>下一步 <Arrow/></button><button className="text-link" onClick={()=>setStep(0)}>← 返回作品</button></>:<><label htmlFor="recipient">收礼人的 .ai 名称或钱包地址</label><input id="recipient" value={to} placeholder="例如 curiosity.ai" onChange={e=>{setTo(e.target.value);setError('')}} aria-invalid={!!error} aria-describedby={error?'recipient-error':undefined}/>{error&&<p className="error" id="recipient-error" role="alert">{error}</p>}<div className="review"><span>礼物</span><strong>{selected.cn}</strong><span>发送人</span><strong>Jimu（演示）</strong><span>链上状态</span><strong>未铸造 · 未发送</strong></div><button className="button primary" onClick={preview}>预览收礼体验 <Arrow/></button><button className="text-link" onClick={()=>setStep(1)}>← 修改留言</button><p className="fine">暂不解析地址，不连接钱包。这里仅演示收礼页面。</p></>}</div></section></div>}
+ <footer><a className="brand" href="/"><span className="brand-star">✦</span> Mement</a><span>A little more than a gift.</span><span><a href="/creators/apply">创作者申请 ↗</a><br/>设计演示 · 钱包与链上功能尚未接入</span></footer>
+
  {notice&&<div className="toast" role="status">{notice}</div>}
  </>;
 }

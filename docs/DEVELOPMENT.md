@@ -1,33 +1,39 @@
 # 开发和运行
 
-## 环境
+当前功能与配置以 [AI 接手说明](AI_HANDOFF.md) 为入口，逐文件用途见 [文件索引](FILE_MAP.md)。
 
-Node.js 24，npm；使用 package-lock.json 安装。主机旧版 Node 18 不受支持，应先切换版本。
+## 环境和启动
+
+Node.js 24、npm，使用 package-lock.json 安装。
 
 ```sh
 npm ci
 npm run dev
 ```
 
-开发服务默认仅监听本机。根路径是 JSON 状态，前端尚未实现。APP_MODE 只支持 demo，其他值拒绝创建礼物。
+默认访问 `http://127.0.0.1:3000`。首页 `/`，后台 `/ops`，创作者申请 `/creators/apply`，投稿 `/creators/studio`，钱包 `/wallet`，生日三维页 `/receive`。可通过 `npm run dev -- --port 3194` 修改端口。
 
-## 检查
+开发服务默认监听本机。演示接口使用 APP_MODE=demo，测试网交互单独走链 97。环境变量见 `.env.example` 与 AI 接手说明。默认 SQLite 与运营密钥保存在 `delivery/platform-demo/`，更改数据目录用 `MEMENT_DATA_DIR`。演示数据通过 `npx tsx scripts/seed-showcase.ts` 初始化。
+
+## 验证
 
 ```sh
 npm run typecheck
 npm test
+npm run test:nft
+node --test scripts/testnet-contract-test.mjs
 npm run build
 npm start
 ```
 
-CI 执行类型检查、边界测试和构建；构建成功不代表链上功能已验证。真实接入后增加登录挑战重放、越权、交易伪造、链上失败与恢复测试。
+CI 执行类型、业务与两份合约测试和构建。合约测试使用隔离本地链。浏览器历史检查脚本见 `scripts/`，依赖 Playwright，部分带有历史本机路径或端口。
 
-## 部署计划
+## 交付和部署
 
-当前不创建托管站点或生产数据库。演示先本地验收；要公开演示时，先替换进程内存储或定义其可丢失行为、加入入口限流与请求大小保护。真实模式必须接持久数据库、HTTPS 会话、事件核验、备份和监控，并关闭无身份的演示接口。
+生日页可通过 `npm run build:birthday` 单独导出静态网站到 `delivery/birthday-demo/`。整个平台包含 Node 服务、SQLite、受保护媒体和 Server Actions，需要可写持久目录及服务端运行环境。
 
-需要定时执行器核对交易与 outbox；不能依赖网页访问来触发关键到账处理。主网合约必须先经过测试与独立复核，不能把脚手架当成已审计系统。
+平台公开上线仍需限流、资源配额、备份、共享会话和角色权限、交易自动核验及重组对账。当前下架控制网站入口，已部署测试合约仍可直接调用。正式主网平台发行需继续完成对应集成和验收。
 
 ## 贡献流程
 
-小步提交；每次只完成一个里程碑内的任务。改动产品规则时同步 DECISIONS，完成阶段时更新 STATUS。不要在日志中输出签名原文、密钥、私人留言或登录令牌。
+先读 AGENTS、README、AI_HANDOFF 和当前平台规则。修改后更新相关文件说明与 STATUS，完成类型检查、业务测试和构建。涉及合约同时运行合约测试，并保持平台部署产物与源码一致。文档保留历史时请明确日期和当前摘要。凭据、私有申请资料、数据库与本地交付产物保存在被 Git 忽略的目录。

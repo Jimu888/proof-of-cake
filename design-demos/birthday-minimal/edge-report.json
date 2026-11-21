@@ -1,0 +1,10 @@
+[
+  {
+    "landscape": true,
+    "keyboardClamp15": true,
+    "noToolbar": true
+  },
+  {
+    "noWebglPaperThenPoster": true
+  }
+]

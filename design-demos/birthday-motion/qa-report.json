@@ -1,0 +1,40 @@
+[
+  {
+    "url": "http://127.0.0.1:3190/receive",
+    "width": 1440,
+    "starsAnimateBeforeOpening": true,
+    "pitchRange4Degrees": true,
+    "noUnwantedCopy": true,
+    "centeredHint": true,
+    "letterWithTo": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:3190/receive",
+    "width": 390,
+    "starsAnimateBeforeOpening": true,
+    "pitchRange4Degrees": true,
+    "noUnwantedCopy": true,
+    "centeredHint": true,
+    "letterWithTo": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:3191/",
+    "width": 390,
+    "starsAnimateBeforeOpening": true,
+    "pitchRange4Degrees": true,
+    "noUnwantedCopy": true,
+    "centeredHint": true,
+    "letterWithTo": true,
+    "errors": []
+  },
+  {
+    "alternative": "dissolve",
+    "opens": true
+  },
+  {
+    "alternative": "push",
+    "opens": true
+  }
+]

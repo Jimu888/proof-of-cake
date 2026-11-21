@@ -1,0 +1,10 @@
+{
+  "slowLoadingFeedback": true,
+  "singleModelRequest": true,
+  "mobileHalosAnimate": true,
+  "noIdleWorldRedraw": true,
+  "finalTouchDrag": true,
+  "networkFailureFallback": true,
+  "physicalDeviceTested": false,
+  "webkit": "installed engine failed to launch (Bus error), not verified"
+}

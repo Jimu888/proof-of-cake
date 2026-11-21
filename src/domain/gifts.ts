@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { catalog, blessings } from './catalog';
+import { findArtwork, blessings } from './catalog';
 
 export class InputError extends Error {}
 export type Gift = {
@@ -11,7 +11,7 @@ export function parseGift(input: unknown) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new InputError('请求内容必须是对象。');
   const data = input as Record<string, unknown>;
   if (Object.keys(data).some(k => !['artworkId', 'recipientHandle', 'blessingId'].includes(k))) throw new InputError('包含不支持的字段。');
-  if (typeof data.artworkId !== 'string' || !catalog.some(a => a.id === data.artworkId)) throw new InputError('作品不存在。');
+  if (typeof data.artworkId !== 'string' || !findArtwork(data.artworkId)) throw new InputError('作品不存在。');
   if (typeof data.recipientHandle !== 'string' || data.recipientHandle.length > 40) throw new InputError('请输入收礼人的 Agent ID。');
   const handle = data.recipientHandle.trim().toLowerCase().replace(/\.ai$/, '');
   if (!/^[a-z0-9]{3,15}$/.test(handle)) throw new InputError('Agent ID 应为 3–15 位英文字母或数字，可带 .ai 后缀。');

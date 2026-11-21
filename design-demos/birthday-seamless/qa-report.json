@@ -1,0 +1,38 @@
+[
+  {
+    "url": "http://127.0.0.1:3190/receive",
+    "width": 1440,
+    "persistentCanvas": true,
+    "noStageHeightJump": true,
+    "noViewerDialog": true,
+    "noBorder": true,
+    "completeAtmosphere": true,
+    "dragAndReset": true,
+    "starToggle": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:3190/receive",
+    "width": 390,
+    "persistentCanvas": true,
+    "noStageHeightJump": true,
+    "noViewerDialog": true,
+    "noBorder": true,
+    "completeAtmosphere": true,
+    "dragAndReset": true,
+    "starToggle": true,
+    "errors": []
+  },
+  {
+    "url": "http://127.0.0.1:3191/",
+    "width": 390,
+    "persistentCanvas": true,
+    "noStageHeightJump": true,
+    "noViewerDialog": true,
+    "noBorder": true,
+    "completeAtmosphere": true,
+    "dragAndReset": true,
+    "starToggle": true,
+    "errors": []
+  }
+]

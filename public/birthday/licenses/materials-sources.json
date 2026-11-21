@@ -1,0 +1,122 @@
+[
+  {
+    "type": "asphalt",
+    "asset": "asphalt_02",
+    "channel": "Diffuse",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/asphalt_02/asphalt_02_diff_2k.jpg",
+    "local": "assets/materials/asphalt_Diffuse.jpg",
+    "md5": "336af399fd98a39ab986d8b3bf73b4ff",
+    "source_page": "https://polyhaven.com/a/asphalt_02",
+    "license": "CC0 — https://polyhaven.com/license"
+  },
+  {
+    "type": "asphalt",
+    "asset": "asphalt_02",
+    "channel": "Displacement",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/asphalt_02/asphalt_02_disp_1k.jpg",
+    "local": "assets/materials/asphalt_Displacement.jpg",
+    "md5": "2699b93c9eacfcf2e10582bccf849287",
+    "source_page": "https://polyhaven.com/a/asphalt_02",
+    "license": "CC0 — https://polyhaven.com/license"
+  },
+  {
+    "type": "asphalt",
+    "asset": "asphalt_02",
+    "channel": "Rough",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/asphalt_02/asphalt_02_rough_1k.jpg",
+    "local": "assets/materials/asphalt_Rough.jpg",
+    "md5": "ec80a2929797c1b3ffc121c4f665585a",
+    "source_page": "https://polyhaven.com/a/asphalt_02",
+    "license": "CC0 — https://polyhaven.com/license"
+  },
+  {
+    "type": "asphalt",
+    "asset": "asphalt_02",
+    "channel": "nor_gl",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/asphalt_02/asphalt_02_nor_gl_1k.jpg",
+    "local": "assets/materials/asphalt_nor_gl.jpg",
+    "md5": "338da8de636ea36133170578cac82e8e",
+    "source_page": "https://polyhaven.com/a/asphalt_02",
+    "license": "CC0 — https://polyhaven.com/license"
+  },
+  {
+    "type": "fabric",
+    "asset": "denim_fabric_06",
+    "channel": "Diffuse",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/denim_fabric_06/denim_fabric_06_diff_2k.jpg",
+    "local": "assets/materials/fabric_Diffuse.jpg",
+    "md5": "b8ff46b2ea7e9ca997fb24d3123b1bd0",
+    "source_page": "https://polyhaven.com/a/denim_fabric_06",
+    "license": "CC0 — https://polyhaven.com/license"
+  },
+  {
+    "type": "fabric",
+    "asset": "denim_fabric_06",
+    "channel": "Displacement",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/denim_fabric_06/denim_fabric_06_disp_1k.jpg",
+    "local": "assets/materials/fabric_Displacement.jpg",
+    "md5": "b4e3e1ac83556856a10a91fa641c7602",
+    "source_page": "https://polyhaven.com/a/denim_fabric_06",
+    "license": "CC0 — https://polyhaven.com/license"
+  },
+  {
+    "type": "fabric",
+    "asset": "denim_fabric_06",
+    "channel": "Rough",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/denim_fabric_06/denim_fabric_06_rough_1k.jpg",
+    "local": "assets/materials/fabric_Rough.jpg",
+    "md5": "a7ddd6594207a323b20175f012916f9f",
+    "source_page": "https://polyhaven.com/a/denim_fabric_06",
+    "license": "CC0 — https://polyhaven.com/license"
+  },
+  {
+    "type": "fabric",
+    "asset": "denim_fabric_06",
+    "channel": "nor_gl",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/denim_fabric_06/denim_fabric_06_nor_gl_1k.jpg",
+    "local": "assets/materials/fabric_nor_gl.jpg",
+    "md5": "93f7e9233d923c3b021de6367cc9c4f0",
+    "source_page": "https://polyhaven.com/a/denim_fabric_06",
+    "license": "CC0 — https://polyhaven.com/license"
+  },
+  {
+    "type": "rock",
+    "asset": "rock_face_03",
+    "channel": "Diffuse",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/rock_face_03/rock_face_03_diff_2k.jpg",
+    "local": "assets/materials/rock_Diffuse.jpg",
+    "md5": "657add9e8a8dffaeed19bdfc58078b59",
+    "source_page": "https://polyhaven.com/a/rock_face_03",
+    "license": "CC0 — https://polyhaven.com/license"
+  },
+  {
+    "type": "rock",
+    "asset": "rock_face_03",
+    "channel": "Displacement",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_face_03/rock_face_03_disp_1k.jpg",
+    "local": "assets/materials/rock_Displacement.jpg",
+    "md5": "9d51d6b2496de79f97b80d43ff1dd7fb",
+    "source_page": "https://polyhaven.com/a/rock_face_03",
+    "license": "CC0 — https://polyhaven.com/license"
+  },
+  {
+    "type": "rock",
+    "asset": "rock_face_03",
+    "channel": "Rough",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_face_03/rock_face_03_rough_1k.jpg",
+    "local": "assets/materials/rock_Rough.jpg",
+    "md5": "bbb2c7dafde3f81808fa7404d4527a56",
+    "source_page": "https://polyhaven.com/a/rock_face_03",
+    "license": "CC0 — https://polyhaven.com/license"
+  },
+  {
+    "type": "rock",
+    "asset": "rock_face_03",
+    "channel": "nor_gl",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rock_face_03/rock_face_03_nor_gl_1k.jpg",
+    "local": "assets/materials/rock_nor_gl.jpg",
+    "md5": "cbd30858439ece391480c5e67e09de89",
+    "source_page": "https://polyhaven.com/a/rock_face_03",
+    "license": "CC0 — https://polyhaven.com/license"
+  }
+]

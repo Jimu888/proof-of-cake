@@ -1,56 +1,65 @@
-# Mement · 项目底座
+# Mement
 
-面向加密用户的生日艺术礼物平台。平台及签约艺术家提供作品，用户以 Binance Agent ID（`.ai`）挑选、署名并直接赠送到朋友的钱包。
+面向加密用户的精选数字艺术礼物平台。创作者经审核后上传作品，用户挑选、购买并直接赠送 NFT 到朋友的钱包，收礼人打开链接即可欣赏作品与祝福。产品名暂定 Mement，仓库名沿用 `proof-of-cake`。
 
-**当前阶段：可运行的 Mement 黑金前端 Demo 与接口骨架；不登录真实钱包、不收款、不铸造或发送 NFT。** 产品名暂定 Mement；仓库名 proof-of-cake 保留，Logo 正在比较提案。
+截至 2026-11-21，仓库包含可运行的平台前后台、创作者审核与投稿、作品定价、销售和演示结算、钱包签名登录、BSC 测试网发行与交易核验，以及《计划之外》生日 3D 个例。平台公网测试网钱包验收及主网支付上线仍有待完成。
 
-生日礼物版本见 [三维生日演示交付说明](docs/releases/BIRTHDAY_DEMO.md)，入口 `/receive`；旧流程在 `/receive/demo`。
+## 接手入口
 
-先看 [当前完善版说明](design-demos/round-8-refinement/README.md)。用户已认可黑金 Demo 为第一版基线（Git 标签 v0.1-demo）；当前增加精品陈列、创作者合作、三维礼盒及 /brand-lab 品牌提案。
+- [AI 接手说明](docs/AI_HANDOFF.md) 介绍当前功能、数据流、启动方式、环境配置和已知缺口。
+- [逐文件说明](docs/FILE_MAP.md) 列出仓库中每个文件的用途，按路径分组。
+- [平台规则](docs/PLATFORM_V1.md) 记录发行规则、50/50 分成和直接送达等已确认决定。
+- [当前进度](docs/STATUS.md) 顶部为当前摘要，下方保存历史推进记录。
+- [生日 3D 测试版归档](archives/README.md) 提供早期生日演示 ZIP 和历史标签。
+- [平台流程与测试网操作](docs/releases/PLATFORM_DEMO.md)、[生日个例说明](docs/releases/BIRTHDAY_DEMO.md)、[生日 NFT 发行记录](docs/releases/BIRTHDAY_NFT_PLAN.md)。
 
-## 从这里开始
+## 本地启动
 
-- [产品范围与已确认方向](docs/PRODUCT.md)
-- [技术架构：含白话说明与系统图](docs/ARCHITECTURE.md)
-- [数据结构](docs/DATA_MODEL.md)
-- [接口与状态约定](docs/API.md)
-- [分阶段路线与完成标准](docs/ROADMAP.md)
-- [当前进度、下一步与待定事项](docs/STATUS.md)
-- [决策记录](docs/DECISIONS.md)
-- [官方参考与素材管理](docs/REFERENCES.md)
-- [开发、验证和部署](docs/DEVELOPMENT.md)
-
-## 本地运行
-
-需要 Node.js 24（见 `.nvmrc`）及 npm。
+使用 Node.js 24 和 npm。
 
 ```sh
 npm ci
 npm run dev
 ```
 
-打开 `http://127.0.0.1:3000` 查看首页，`/receive` 体验收礼；`/api/catalog` 查看演示接口目录。前端占位作品与旧接口目录尚未统一。演示接口说明见 [API](docs/API.md)。
+默认访问 `http://127.0.0.1:3000`。首页 `/`，作者申请 `/creators/apply`，作者投稿 `/creators/studio`，运营后台 `/ops`，钱包登录 `/wallet`，生日三维个例 `/receive`。运营首次登录会在本地数据目录生成 `operator.key`，也可通过 `MEMENT_OPERATOR_KEY` 配置。
+
+演示数据可以通过下列命令生成，包含三位示例作者、三件作品和六笔样例订单。
+
+```sh
+npx tsx scripts/seed-showcase.ts
+```
+
+默认数据保存在被 Git 忽略的 `delivery/platform-demo/`，可用 `MEMENT_DATA_DIR` 指定可写目录。新克隆的项目需自行初始化数据。具体配置见 [AI 接手说明](docs/AI_HANDOFF.md)。
+
+## 验证
 
 ```sh
 npm run typecheck
 npm test
+npm run test:nft
+node --test scripts/testnet-contract-test.mjs
 npm run build
 ```
 
-## 目录
+CI 同样运行这些检查。合约测试在本地隔离链执行。生日个例已单独发行过主网 NFT，平台的购买与发行功能当前使用 BSC 测试网配置。
 
-```text
-design-demos/  三个独立前端设计原型、比较入口、概念素材与截图
-src/app/       网站页面与服务端接口入口
-src/domain/    作品与赠送业务规则，独立于页面
-src/server/    仅在服务端运行的配置与保护
-contracts/     后续合约开发位置，当前没有可部署合约
-infra/         数据库与部署设计，当前没有已执行迁移
-assets/        经确认可提交的原创素材与授权记录
-research/      调研笔记、用户反馈和资料索引
-scripts/       后续维护脚本
-tests/        业务边界验证
- docs/         项目文档与状态
-```
+## 目录概览
 
-仓库作为项目资料的统一入口。不要提交密钥、助记词、真实用户数据或私人祝福。大型源文件使用后续配置的 Git LFS 或私有素材存储，并在仓库保留索引；公开展示素材另行确认授权。
+| 目录 | 用途 |
+| --- | --- |
+| `src/app/` | 页面、接口、服务端表单操作和样式 |
+| `src/components/` | 首页、钱包、赠礼、收礼和三维体验 |
+| `src/domain/` | 作品、申请、订单、规则与整数分账 |
+| `src/server/` | SQLite 存储、后台权限、签名登录和链上核验 |
+| `src/lib/` | 测试网参数和客户端合约 ABI |
+| `contracts/` | 生日个例合约、平台测试合约和编译产物 |
+| `public/` | 网站图像、字体、品牌提案、生日模型与许可 |
+| `scripts/` | 编译、静态导出、样例数据和验证工具 |
+| `tests/` | 业务与权限边界测试 |
+| `docs/` | 产品、技术、接口、交付记录和接手说明 |
+| `archives/` | 生日测试版压缩归档 |
+| `design-demos/` | 历史视觉探索、原型、截图和检查记录 |
+| `assets/`、`infra/`、`research/` | 素材、基础设施和调研资料的预留入口 |
+
+运行配置、登录密钥、数据库、申请附件和本地发行交付包保存在开发机。仓库保持私有。公开展示的生日个例资料具有独立发布记录。

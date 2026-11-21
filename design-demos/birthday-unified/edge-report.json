@@ -1,0 +1,13 @@
+[
+  {
+    "width": 320,
+    "reducedMotionDefaultOff": true,
+    "explicitStarEnableWorks": true
+  },
+  {
+    "modelFailureReachesFallbackAndRetries": true
+  },
+  {
+    "noWebglPaperFallbackThenPoster": true
+  }
+]
