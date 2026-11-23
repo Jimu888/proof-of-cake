@@ -1,8 +1,8 @@
 # 仓库逐文件说明
 
-更新于 2026-11-21。每个入库文件占一行。阅读当前实现先看 `AI_HANDOFF.md`，历史原型可按需查看。运行时数据库、环境文件、依赖与构建产物由忽略规则管理。新增、删除或移动文件时请同步本索引。
+更新于 2026-11-23。每个入库文件占一行。阅读当前实现先看 `AI_HANDOFF.md`，历史原型可按需查看。运行时数据库、环境文件、依赖与构建产物由忽略规则管理。新增、删除或移动文件时请同步本索引。
 
-本索引覆盖 470 个文件，包括本文件。压缩包内部清单由归档源提交确定，见 `archives/README.md`。
+本索引覆盖 478 个文件，包括本文件。压缩包内部清单由归档源提交确定，见 `archives/README.md`。
 
 ## .github
 
@@ -21,7 +21,15 @@
 
 | 文件 | 用途 |
 | --- | --- |
-| `assets/README.md` | 原创素材及授权资料的预留目录说明 |
+| `assets/README.md` | 礼品素材清单和系列入口 |
+| `assets/gifts/voxel-zodiac/voxel-dragon-preview.png` | 生肖龙生日礼物的作品预览图（PNG，1080 × 1440） |
+| `assets/gifts/voxel-zodiac/voxel-dragon.glb` | 生肖龙生日礼物的三维作品模型（GLB） |
+| `assets/gifts/voxel-zodiac/voxel-goat-preview.png` | 生肖羊生日礼物的作品预览图（PNG，1080 × 1440） |
+| `assets/gifts/voxel-zodiac/voxel-goat.glb` | 生肖羊生日礼物的三维作品模型（GLB） |
+| `assets/gifts/voxel-zodiac/voxel-horse-preview.png` | 生肖马生日礼物的作品预览图（PNG，1080 × 1440） |
+| `assets/gifts/voxel-zodiac/voxel-horse.glb` | 生肖马生日礼物的三维作品模型（GLB） |
+| `assets/gifts/voxel-zodiac/voxel-ox-preview.png` | 生肖牛生日礼物的作品预览图（PNG，1080 × 1440） |
+| `assets/gifts/voxel-zodiac/voxel-ox.glb` | 生肖牛生日礼物的三维作品模型（GLB） |
 
 ## contracts
 
