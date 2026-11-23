@@ -19,5 +19,6 @@ export default async function TestnetGiftPage({ params }: { params: Promise<{ tr
   })();
   if (!gift) return <main className="platform-empty"><h1>暂时无法确认这份测试网礼物。</h1><p>请核对交易链接，或稍后刷新查看。</p><Link className="button outline" href="/wallet">返回测试赠礼</Link></main>;
   const artwork = getOperations().releaseByContract(gift.contract)?.artwork ?? findArtwork('cat')!;
-  return <PlatformReceive order={{ ...gift, id: gift.tokenId, artwork }} transaction={gift.transaction}/>;
+  const { vault, ...order } = gift;
+  return <PlatformReceive order={{ ...order, id: gift.tokenId, artwork }} transaction={gift.transaction} chainVault={vault}/>;
 }

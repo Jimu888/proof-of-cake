@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { formatEther } from 'ethers';
+import VaultFields, { resolveVaultDraft } from './vault-fields';
+import { parseVaultDraft, vaultAmountText, type VaultAsset, type VaultDraft } from '../domain/vault-gift';
+import { giftAbi, vaultGiftAbi, vaultTokenAbi } from '../lib/test-gift';
 import TestnetIssuance from './testnet-issuance';
 import { testnet } from '../lib/testnet';
 
@@ -78,8 +81,9 @@ async function selectTestnet(provider: Provider, rpc: string) {
   if (await provider.request({ method: 'eth_chainId' }) !== testnet.chainId) throw new Error('请在钱包中切换到 BNB Smart Chain 测试网。');
 }
 
-export default function WalletLogin({ projectId, sale, issue, artworkRequested, rpc = testnet.rpc }: {
-  projectId: string; sale?: { id: string; title: string; contract: string; price: string };
+export default function WalletLogin({ projectId, sale, issue, artworkRequested, redemption, rpc = testnet.rpc }: {
+  projectId: string; sale?: { id: string; title: string; contract: string; price: string; vault?: boolean };
+  redemption?: { purchase: string; contract: string; tokenId: string; asset: VaultAsset };
   artworkRequested?: boolean; issue?: { id: string; title: string; price: string }; rpc?: string;
 }) {
   const [wallets, setWallets] = useState<WalletOption[]>([]);
@@ -90,6 +94,19 @@ export default function WalletLogin({ projectId, sale, issue, artworkRequested, 
   const [network, setNetwork] = useState<{ block: number; contract: string | null; price: string | null }>();
   const purchase = sale ?? (artworkRequested ? undefined : network);
   const purchaseKey = address && purchase?.contract ? 'mement-test-gift:' + address.toLowerCase() + ':' + purchase.contract.toLowerCase() : '';
+  const [vault, setVault] = useState<VaultDraft>();
+  const [redeemHash, setRedeemHash] = useState('');
+  const [redeemResult, setRedeemResult] = useState<'confirmed' | 'reverted'>();
+  const [vaultReview, setVaultReview] = useState<Awaited<ReturnType<typeof resolveVaultDraft>>>();
+  const redeemKey = redemption ? 'mement-vault-redeem:' + redemption.purchase : '';
+
+  useEffect(() => {
+    if (!redeemKey) return;
+    try {
+      const saved = sessionStorage.getItem(redeemKey);
+      if (saved && /^0x[0-9a-f]{64}$/i.test(saved)) setRedeemHash(saved);
+    } catch {}
+  }, [redeemKey]);
   const [recipient, setRecipient] = useState('');
   const [message, setMessage] = useState('生日快乐！');
   const [txHash, setTxHash] = useState('');
@@ -247,8 +264,11 @@ export default function WalletLogin({ projectId, sale, issue, artworkRequested, 
       const to = getAddress(recipient.trim());
       if (to === ZeroAddress) throw new Error('收礼地址不能为零地址。');
       if (new TextEncoder().encode(message).length > 840) throw new Error('祝福内容过长。');
+      const checked = await resolveVaultDraft(vault);
+      setVault(checked?.draft);
+      setVaultReview(checked);
       setReviewAddress(to);
-    } catch (failure) { setError(failure instanceof Error && failure.message.includes('收礼') ? failure.message : '请核对收礼地址及祝福长度。'); }
+    } catch (failure) { setError(failure instanceof Error && failure.message.includes('收礼') ? failure.message : vault ? '请核对收礼地址、祝福长度及内封资产。' : '请核对收礼地址及祝福长度。'); }
   }
 
   async function deploy(data: string) {
@@ -269,29 +289,70 @@ export default function WalletLogin({ projectId, sale, issue, artworkRequested, 
     setError('');
     setProgress('正在核对测试赠礼…');
     try {
-      const { getAddress, ZeroAddress, Interface, toBeHex, hexlify, randomBytes, id, isHexString } = await import('ethers');
-      const { giftAbi } = await import('../lib/test-gift');
+      const { BrowserProvider, getAddress, ZeroAddress, Interface, toBeHex, hexlify, randomBytes, id, isHexString } = await import('ethers');
       const to = getAddress(reviewAddress);
       if (to === ZeroAddress) throw new Error('收礼地址不能为零地址。');
       const session = await fetch('/api/wallet').then(response => response.json());
       if (session.address !== address) throw new Error('登录已失效，请重新登录。');
       const accounts = await provider.request({ method: 'eth_accounts' }) as string[];
       if (accounts[0]?.toLowerCase() !== address.toLowerCase() || await provider.request({ method: 'eth_chainId' }) !== testnet.chainId) throw new Error('请重新连接测试网钱包。');
-      const draft = id(JSON.stringify([address, to, message, purchase.contract]));
+      const deposit = await resolveVaultDraft(vault);
+      if (deposit?.amount !== vaultReview?.amount || deposit?.symbol !== vaultReview?.symbol) {
+        setReviewAddress('');
+        throw new Error('代币资料已变化，请重新核对内封资产。');
+      }
+      if (deposit && !sale?.vault) throw new Error('该测试发行版本不支持封入资产。');
+      const draft = id(JSON.stringify(deposit
+        ? [address, to, message, purchase.contract, deposit.draft, String(deposit.amount)]
+        : [address, to, message, purchase.contract]));
       if (pendingOrder.current?.draft !== draft) {
         let saved: { draft?: string; id?: string } | null = null;
         try { saved = JSON.parse(sessionStorage.getItem(purchaseKey + ':order') ?? 'null'); } catch { /* Browser storage may be unavailable. */ }
         pendingOrder.current = { draft, id: saved?.draft === draft && isHexString(saved.id, 32) ? saved.id! : hexlify(randomBytes(32)) };
       }
       try { sessionStorage.setItem(purchaseKey + ':order', JSON.stringify(pendingOrder.current)); } catch { /* Keep the in-memory order identifier. */ }
-      const data = new Interface(giftAbi).encodeFunctionData('buyGift', [pendingOrder.current.id, to, message]);
-      if (operation.current !== current) return;
-      const transaction = { from: address, to: purchase.contract, value: toBeHex(BigInt(purchase.price!)), data };
+      const args = [pendingOrder.current.id, to, message];
+      const encoder = new Interface([...giftAbi, ...vaultGiftAbi]);
+      let value = BigInt(purchase.price!);
+      let data = encoder.encodeFunctionData('buyGift', args);
+      if (deposit?.draft.kind === 'native') {
+        value += deposit.amount;
+        data = encoder.encodeFunctionData('mintGiftWithNativeVault', [...args, deposit.amount]);
+      } else if (deposit) {
+        const token = deposit.draft.token!;
+        const abi = new Interface(vaultTokenAbi);
+        const allowance = async () => {
+          const result = await provider.request({ method: 'eth_call', params: [{
+            to: token, data: abi.encodeFunctionData('allowance', [address, purchase.contract]),
+          }, 'latest'] }) as string;
+          return abi.decodeFunctionResult('allowance', result)[0] as bigint;
+        };
+        const existing = await allowance();
+        if (existing < deposit.amount) {
+          if (operation.current !== current || await provider.request({ method: 'eth_chainId' }) !== testnet.chainId) return;
+          if (existing !== 0n) throw new Error('请先在钱包撤销该代币的旧授权，再重新赠送。');
+          setProgress('请在钱包确认本次测试代币的用量授权。');
+          const approval = await provider.request({ method: 'eth_sendTransaction', params: [{
+            from: address, to: token, data: abi.encodeFunctionData('approve', [purchase.contract, deposit.amount]), value: '0x0',
+          }] });
+          if (typeof approval !== 'string' || !isHexString(approval, 32)) throw new Error('钱包未返回有效的授权哈希。');
+          const client = new BrowserProvider(provider, testnet.id);
+          try {
+            const receipt = await client.waitForTransaction(approval, 1, 90_000);
+            if (receipt?.status !== 1 || await allowance() < deposit.amount) throw new Error('测试代币授权尚未成功，可稍后重试。');
+          } finally { client.destroy(); }
+        }
+        data = encoder.encodeFunctionData('mintGiftWithTokenVault', [...args, token, deposit.amount]);
+      }
+      const currentAccounts = await provider.request({ method: 'eth_accounts' }) as string[];
+      if (operation.current !== current || currentAccounts[0]?.toLowerCase() !== address.toLowerCase() ||
+          await provider.request({ method: 'eth_chainId' }) !== testnet.chainId) return;
+      const transaction = { from: address, to: purchase.contract, value: toBeHex(value), data };
       try {
         const simulation = await provider.request({ method: 'eth_call', params: [transaction, 'latest'] });
         if (typeof simulation !== 'string' || !/^0x[0-9a-f]{64}$/i.test(simulation) || BigInt(simulation) === 0n) throw new Error('No mint result');
       }
-      catch { throw new Error('交易预检未通过。请核对测试币余额、作品库存和收礼地址。'); }
+      catch { throw new Error('交易预检未通过。请核对测试币、代币授权、发行库存及收礼地址。'); }
       if (operation.current !== current || await provider.request({ method: 'eth_chainId' }) !== testnet.chainId) return;
       setProgress('请在钱包中核对并确认测试网交易。');
       const hash = await provider.request({ method: 'eth_sendTransaction', params: [transaction] }) as string;
@@ -326,6 +387,69 @@ export default function WalletLogin({ projectId, sale, issue, artworkRequested, 
     setConfirmedGift({ tokenId: data.tokenId, sharePath: data.sharePath });
   }
 
+  async function checkRedemption() {
+    if (!redemption || !redeemHash || progress) return;
+    setError('');
+    setProgress('正在核对赎回交易…');
+    try {
+      const result = await fetch('/api/testnet?transaction=' + encodeURIComponent(redemption.purchase));
+      const gift = await result.json();
+      if (result.ok && gift.vault?.redeemed) {
+        setRedeemHash(gift.vault.redeemed.transaction);
+        setRedeemResult('confirmed');
+        try { sessionStorage.removeItem(redeemKey); } catch {}
+        return;
+      }
+      if (active.current && await active.current.request({ method: 'eth_chainId' }) === testnet.chainId) {
+        const receipt = await active.current.request({ method: 'eth_getTransactionReceipt', params: [redeemHash] }) as { status?: string } | null;
+        if (receipt?.status === '0x0') {
+          try { sessionStorage.removeItem(redeemKey); } catch {}
+          setRedeemHash('');
+          setRedeemResult('reverted');
+          return;
+        }
+      }
+      setError('赎回尚未获得三次确认，请稍后再核对。');
+    } catch {
+      setError('暂时无法核对赎回状态。');
+    } finally { setProgress(''); }
+  }
+
+  async function redeemGift() {
+    const provider = active.current;
+    if (!redemption || !provider || !address || progress || submittingGift.current || redeemHash) return;
+    submittingGift.current = true;
+    const current = operation.current;
+    setError('');
+    setRedeemResult(undefined);
+    setProgress('正在核对当前持有人…');
+    try {
+      const { Interface, isHexString } = await import('ethers');
+      const session = await fetch('/api/wallet').then(response => response.json());
+      const accounts = await provider.request({ method: 'eth_accounts' }) as string[];
+      if (session.address !== address || accounts[0]?.toLowerCase() !== address.toLowerCase() ||
+          await provider.request({ method: 'eth_chainId' }) !== testnet.chainId) throw new Error('请连接当前持有人的测试网钱包。');
+      const abi = new Interface(vaultGiftAbi);
+      const result = await provider.request({ method: 'eth_call', params: [{
+        to: redemption.contract, data: abi.encodeFunctionData('ownerOf', [redemption.tokenId]),
+      }, 'latest'] }) as string;
+      if (abi.decodeFunctionResult('ownerOf', result)[0].toLowerCase() !== address.toLowerCase()) throw new Error('只有当前 NFT 持有人可以取出资产。');
+      const tx = { from: address, to: redemption.contract, data: abi.encodeFunctionData('burnAndRedeem', [redemption.tokenId]), value: '0x0' };
+      await provider.request({ method: 'eth_call', params: [tx, 'latest'] });
+      if (operation.current !== current || await provider.request({ method: 'eth_chainId' }) !== testnet.chainId) return;
+      setProgress('请在钱包确认测试网销毁和赎回。');
+      const hash = await provider.request({ method: 'eth_sendTransaction', params: [tx] });
+      if (typeof hash !== 'string' || !isHexString(hash, 32)) throw new Error('钱包未返回有效的赎回哈希。');
+      try { sessionStorage.setItem(redeemKey, hash); } catch {}
+      setRedeemHash(hash);
+    } catch (failure) {
+      if (operation.current === current) setError(failure instanceof Error && !('code' in failure) ? failure.message : '测试网赎回未完成，请检查持有人及代币转账状态。');
+    } finally {
+      submittingGift.current = false;
+      if (operation.current === current) setProgress('');
+    }
+  }
+
   return <div className="platform-page">
     <header className="platform-header"><Link className="brand" href="/">✦ Mement</Link><Link className="text-link" href="/">返回精选作品 ↗</Link></header>
     <main className="creator-application-layout">
@@ -352,15 +476,17 @@ export default function WalletLogin({ projectId, sale, issue, artworkRequested, 
         </>}
         {pairing && <div className="wallet-pairing"><img src={pairing.qr} alt="WalletConnect 连接二维码"/><p>用钱包 App 扫码连接。</p><button className="text-link" onClick={() => navigator.clipboard.writeText(pairing.uri).catch(() => setError('无法复制连接信息。'))}>复制连接 URI</button></div>}
         {issue && connectorReady && <TestnetIssuance {...issue} deploy={deploy}/>}
-        {address && !issue && <section className="wallet-test-gift">
+        {address && !issue && !redemption && <section className="wallet-test-gift">
           <h2>{sale ? '测试赠礼 · ' + sale.title : '测试赠礼'}</h2>
           {!purchase?.contract ? <p className="checkout-note">测试合约地址配置后可体验付款与铸造。</p> : <>
             <p className="checkout-note">价格 {purchase.price ? formatEther(purchase.price) : ''} tBNB，另需测试网手续费。</p>
             {!txHash && <form className="checkout-form" onSubmit={event => { event.preventDefault(); void reviewGift(); }}>
               <label htmlFor="test-recipient">测试网收礼地址</label><input id="test-recipient" required value={recipient} disabled={!!reviewAddress} onChange={event => setRecipient(event.target.value)} placeholder="0x…"/>
               <label htmlFor="test-message">公开祝福</label><textarea id="test-message" maxLength={280} rows={3} value={message} disabled={!!reviewAddress} onChange={event => setMessage(event.target.value)}/>
+              {sale?.vault && <VaultFields value={vault} onChange={setVault} enabled disabled={!!reviewAddress || !!progress}/>}
               {reviewAddress ? <>
                 <p className="wallet-address">收礼地址 {reviewAddress}</p>
+                {vaultReview && <p className="checkout-note">内封资产 {vaultReview.draft.amount} {vaultReview.symbol} · 平台售价另计</p>}
                 <button type="button" className="button primary" disabled={!connectorReady || !!progress} onClick={() => void sendGift()}>确认并打开钱包 ↗</button>
                 <button type="button" className="text-link" disabled={!!progress} onClick={() => setReviewAddress('')}>修改收礼信息</button>
               </> : <button className="button primary" disabled={!connectorReady || !!progress}>核对测试赠礼 ↗</button>}
@@ -370,6 +496,16 @@ export default function WalletLogin({ projectId, sale, issue, artworkRequested, 
             {(confirmedGift || reverted) && <button className="button outline" onClick={clearGift}>{reverted ? '重新准备赠礼' : '准备下一份礼物'}</button>}
             {confirmedGift && <><p role="status">链上已确认 · NFT #{confirmedGift.tokenId}</p><Link className="button outline" href={confirmedGift.sharePath}>打开测试收礼页 ↗</Link></>}
           </>}
+        </section>}
+        {redemption && <section className="wallet-test-gift">
+          <h2>取出内封资产 · 测试网</h2>
+          <p>{vaultAmountText(redemption.asset)} · 销毁后不可恢复</p>
+          {address && !redeemHash && <button type="button" className="button outline" disabled={!connectorReady || !!progress}
+            onClick={() => void redeemGift()}>在钱包确认销毁并取出 ↗</button>}
+          {redeemHash && <p role="status">{redeemResult === 'confirmed' ? '已确认销毁和赎回。' : '已提交，等待链上确认。'}<a className="text-link" href={testnet.explorer + '/tx/' + redeemHash} target="_blank" rel="noreferrer">查看测试网交易 ↗</a></p>}
+          {redeemHash && redeemResult !== 'confirmed' && <button type="button" className="button outline" disabled={!!progress} onClick={() => void checkRedemption()}>重新核对赎回</button>}
+          {redeemResult === 'reverted' && <p role="status">交易未执行成功，可重新核对后再提交。</p>}
+          <Link className="text-link" href={'/gift/testnet/' + redemption.purchase}>返回收礼页查看状态 ↗</Link>
         </section>}
         {progress && <p className="checkout-note" role="status">{progress}</p>}
         {error && <p className="error" role="alert">{error}</p>}

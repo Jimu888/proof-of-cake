@@ -1,11 +1,28 @@
 import type { Metadata } from 'next';
 import WalletLogin from '../../components/wallet-login';
 import { getOperations } from '../../server/operations';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { readTestnetConfiguration, readTestnetGift, testnetProvider, transactionHashPattern } from '../../server/testnet-gifts';
 import { isOperator } from '../../server/operator-auth';
 export const metadata: Metadata = { title: '钱包登录 · Mement', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
-export default async function WalletPage({ searchParams }: { searchParams: Promise<{ artwork?: string; issue?: string }> }) {
+export default async function WalletPage({ searchParams }: { searchParams: Promise<{ artwork?: string; issue?: string; redeem?: string }> }) {
   const query = await searchParams;
+  if (query.redeem) {
+    if (!transactionHashPattern.test(query.redeem)) notFound();
+    const provider = testnetProvider();
+    let gift;
+    try { gift = await readTestnetGift(provider, query.redeem, await readTestnetConfiguration(provider)); }
+    catch { /* A failed RPC read never grants redemption access. */ }
+    finally { provider.destroy(); }
+    if (!gift?.vault?.owner || gift.vault.redeemed) {
+      return <main className="platform-empty"><h1>暂时没有可取出的内封资产</h1><Link href={'/gift/testnet/' + query.redeem}>返回礼物 →</Link></main>;
+    }
+    return <WalletLogin projectId={process.env.WALLETCONNECT_PROJECT_ID ?? ''}
+      redemption={{ purchase: gift.transaction, contract: gift.contract, tokenId: gift.tokenId, asset: gift.vault }}
+      rpc={process.env.MEMENT_LOCAL_TESTNET_RPC}/>;
+  }
   const store = getOperations();
   const artwork = query.artwork ? store.publishedArtwork(query.artwork) : undefined;
   const release = artwork && store.release(artwork.id);
@@ -13,7 +30,7 @@ export default async function WalletPage({ searchParams }: { searchParams: Promi
     ? store.publishedArtwork(query.issue) : undefined;
   return <WalletLogin projectId={process.env.WALLETCONNECT_PROJECT_ID ?? ''}
     artworkRequested={!!query.artwork || !!query.issue}
-    sale={release && { id: release.artwork.id, title: release.artwork.title, contract: release.contract, price: release.artwork.priceAtomic }}
+    sale={release && { id: release.artwork.id, title: release.artwork.title, contract: release.contract, price: release.artwork.priceAtomic, vault: !!release.vault && release.artwork.policy.holderCanBurn }}
     issue={issue && { id: issue.id, title: issue.title, price: issue.price }}
     rpc={process.env.MEMENT_LOCAL_TESTNET_RPC}/>;
 }

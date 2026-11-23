@@ -1,5 +1,6 @@
 import { Contract, ContractFactory, getAddress, ZeroAddress, keccak256 } from 'ethers';
-import artifact from '../../contracts/platform/test-gift.artifact.json';
+import legacyArtifact from '../../contracts/platform/test-gift.artifact.json';
+import artifact from '../../contracts/platform/vault-gift.artifact.json';
 import { getOperations, OperationsError, type TestnetRelease } from './operations';
 import { getRevenueSplit } from './revenue-config';
 import { testnetProvider } from './testnet-gifts';
@@ -25,11 +26,16 @@ function releaseInputs(id: string, artist: string, platform: string) {
 
 export async function prepareRelease(id: string, artist: string, platform: string) {
   const release = releaseInputs(id, artist, platform);
+  const data = await releaseData(release, artifact);
+  return { ...release, chainId: '0x61', data };
+}
+
+async function releaseData(release: ReturnType<typeof releaseInputs>, compiled: typeof artifact | typeof legacyArtifact) {
   const { artwork, artistBps } = release;
-  const factory = new ContractFactory(artifact.abi, artifact.bytecode);
+  const factory = new ContractFactory(compiled.abi, compiled.bytecode);
   const transaction = await factory.getDeployTransaction(release.artist, release.platform, artwork.priceAtomic,
     artistBps, artwork.editionLimit, artwork.policy.transferable, artwork.policy.holderCanBurn, metadata(artwork, artistBps));
-  return { ...release, chainId: '0x61', data: transaction.data };
+  return transaction.data;
 }
 
 export async function verifyRelease(id: string, artist: string, platform: string, hash: string): Promise<TestnetRelease> {
@@ -46,13 +52,18 @@ export async function verifyRelease(id: string, artist: string, platform: string
     ]);
     if (!receipt || height - receipt.blockNumber + 1 < 3) throw new OperationsError('部署交易尚未达到三次确认，请稍后核验。');
     if (receipt.status !== 1 || !receipt.contractAddress || !transaction || transaction.to ||
-        transaction.value !== 0n || keccak256(transaction.data) !== keccak256(prepared.data)) throw new OperationsError('部署交易与当前作品或收款设置不一致。');
+        transaction.value !== 0n) throw new OperationsError('部署交易与当前作品或收款设置不一致。');
+    const hashOfData = keccak256(transaction.data);
+    const vault = hashOfData === keccak256(prepared.data);
+    if (!vault && hashOfData !== keccak256(await releaseData(prepared, legacyArtifact))) {
+      throw new OperationsError('部署交易与当前作品或收款设置不一致。');
+    }
     const block = await provider.getBlock(receipt.blockNumber);
     if (block?.hash !== receipt.blockHash) throw new OperationsError('部署区块尚未稳定，请稍后核验。');
     const contract = getAddress(receipt.contractAddress);
     const deployed = new Contract(contract, artifact.abi, provider);
     if (await deployed.metadata() !== metadata(prepared.artwork, prepared.artistBps)) throw new OperationsError('链上作品信息不一致。');
     const { data: _data, chainId: _chain, ...release } = prepared;
-    return { ...release, contract };
+    return { ...release, contract, ...(vault && { vault: true }) };
   } finally { provider.destroy(); }
 }

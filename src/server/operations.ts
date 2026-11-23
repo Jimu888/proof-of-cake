@@ -12,8 +12,8 @@ import { getCreatorApplicationRepository } from './creator-application-repositor
 export const digest = (text: string) => createHash('sha256').update(text).digest('hex');
 export const randomToken = () => randomBytes(32).toString('hex');
 export class OperationsError extends Error { readonly name = 'OperationsError'; }
-export type TestnetSale = Omit<NonNullable<Awaited<ReturnType<typeof readTestnetGift>>>, 'message' | 'sharePath'>;
-export type TestnetRelease = { artwork: Artwork; contract: string; artist: string; platform: string; artistBps: number };
+export type TestnetSale = Omit<NonNullable<Awaited<ReturnType<typeof readTestnetGift>>>, 'message' | 'sharePath' | 'vault'>;
+export type TestnetRelease = { artwork: Artwork; contract: string; artist: string; platform: string; artistBps: number; vault?: boolean };
 type Work = { artwork: Artwork; state: 'review' | 'published' | 'rejected' | 'archived'; createdAt: string };
 export function priceAtomic(price: string) {
   if (!/^\d{1,8}(?:\.\d{1,18})?$/.test(price) || parseEther(price) === 0n) throw new OperationsError('请输入大于零的 BNB 价格，最多 18 位小数。');

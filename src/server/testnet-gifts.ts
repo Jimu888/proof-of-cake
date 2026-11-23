@@ -1,11 +1,12 @@
 import { Contract, FetchRequest, Interface, JsonRpcProvider, ZeroAddress, getAddress } from 'ethers';
 import { testnet } from '../lib/testnet';
 import { getOperations } from './operations';
-import { giftAbi } from '../lib/test-gift';
+import { readGiftVault } from './testnet-vault';
+import { giftAbi, vaultGiftAbi } from '../lib/test-gift';
 
 export const transactionHashPattern = /^0x[0-9a-f]{64}$/i;
 export class RevertedGiftTransaction extends Error {}
-const giftInterface = new Interface(giftAbi);
+const giftInterface = new Interface([...giftAbi, ...vaultGiftAbi]);
 export function testnetProvider() {
   const local = process.env.MEMENT_LOCAL_TESTNET_RPC;
   if (local && !/^http:\/\/127\.0\.0\.1:\d+$/.test(local)) throw new Error('Expected loopback test RPC');
@@ -40,9 +41,19 @@ export async function readTestnetGift(provider: JsonRpcProvider, transaction: st
   ]);
   if (!submitted || submitted.blockHash !== receipt.blockHash) return null;
   const purchase = giftInterface.parseTransaction({ data: submitted.data, value: submitted.value });
+  const native = purchase?.name === 'mintGiftWithNativeVault';
+  const token = purchase?.name === 'mintGiftWithTokenVault';
+  const vaulted = native || token;
+  const paid = BigInt(price) + (native ? BigInt(purchase.args.vaultAmount) : 0n);
+  const funded = vaulted && logs.find(log => log?.name === 'VaultFunded' && log.args.tokenId === gift.args.tokenId);
+  if (vaulted && (!release?.vault || !funded || funded.args.amount <= 0n ||
+      funded.args.token !== (native ? ZeroAddress : purchase!.args.token) ||
+      (native ? funded.args.amount !== purchase!.args.vaultAmount : funded.args.amount > purchase!.args.desiredAmount))) {
+    throw new Error('Vault deposit does not match receipt');
+  }
   if (submitted.chainId !== BigInt(testnet.id) || submitted.from !== gift.args.sender ||
-      submitted.to !== contract || submitted.value !== BigInt(price) || purchase?.name !== 'buyGift' ||
-      purchase.args.orderId !== gift.args.orderId || purchase.args.recipient !== gift.args.recipient ||
+      submitted.to !== contract || submitted.value !== paid || (!vaulted && purchase?.name !== 'buyGift') ||
+      !purchase || purchase.args.orderId !== gift.args.orderId || purchase.args.recipient !== gift.args.recipient ||
       purchase.args.message !== gift.args.message) throw new Error('Purchase does not match receipt');
   if (!giftBlock || giftBlock.hash !== receipt.blockHash) return null;
   const settlement = new Contract(contract, ['function artistBps() view returns (uint16)'], provider);
@@ -50,11 +61,16 @@ export async function readTestnetGift(provider: JsonRpcProvider, transaction: st
   if (!Number.isInteger(artistBps) || artistBps < 0 || artistBps > 10000 || price === null) throw new Error('Invalid split');
   const amount = BigInt(price);
   const platformAmount = amount * BigInt(10000 - artistBps) / 10000n;
+  const vault = vaulted ? await readGiftVault(provider, contract, gift.args.tokenId, block) : undefined;
+  if (funded && (vault?.token !== funded.args.token || vault?.amount !== String(funded.args.amount))) {
+    throw new Error('Vault balance record does not match confirmed funding');
+  }
   return {
     artworkId: release?.artwork.id, artworkTitle: release?.artwork.title, artistName: release?.artwork.artist,
     contract, price, artistBps, artistAmount: String(amount - platformAmount), platformAmount: String(platformAmount),
     tokenId: String(gift.args.tokenId), recipient: String(gift.args.recipient), sender: String(gift.args.sender),
     message: String(gift.args.message), createdAt: new Date(giftBlock.timestamp * 1000).toISOString(),
+    vault,
     transaction: receipt.hash, sharePath: '/gift/testnet/' + receipt.hash,
   };
 }
@@ -62,7 +78,7 @@ export async function readTestnetGift(provider: JsonRpcProvider, transaction: st
 export async function verifyAndRecordGift(provider: JsonRpcProvider, hash: string) {
   const gift = await readTestnetGift(provider, hash, await readTestnetConfiguration(provider));
   if (!gift) return null;
-  const { message: _message, sharePath: _sharePath, ...sale } = gift;
+  const { message: _message, sharePath: _sharePath, vault: _vault, ...sale } = gift;
   getOperations().recordTestnetSale(sale);
   return gift;
 }

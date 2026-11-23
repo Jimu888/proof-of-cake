@@ -2,7 +2,7 @@
 
 更新于 2026-11-23。每个入库文件占一行。阅读当前实现先看 `AI_HANDOFF.md`，历史原型可按需查看。运行时数据库、环境文件、依赖与构建产物由忽略规则管理。新增、删除或移动文件时请同步本索引。
 
-本索引覆盖 478 个文件，包括本文件。压缩包内部清单由归档源提交确定，见 `archives/README.md`。
+本索引覆盖 496 个文件，包括本文件。压缩包内部清单由归档源提交确定，见 `archives/README.md`。
 
 ## .github
 
@@ -38,7 +38,9 @@
 | `contracts/README.md` | 生日个例和平台测试合约的用途及验证入口 |
 | `contracts/birthday/MementBirthday.sol` | 生日个例单枚不可转让 NFT 合约，发行者直接铸造、持有人按规则销毁 |
 | `contracts/platform/MementTestGift.sol` | 平台测试赠礼合约，固定价格与版数、付款铸造、订单防重、可提分成和转让/销毁规则 |
+| `contracts/platform/MementVaultGift.sol` | 链 97 赠礼合约，按售价分账，支持原生币或兼容代币内封和销毁赎回 |
 | `contracts/platform/test-gift.artifact.json` | 平台测试合约 ABI 与部署字节码，合约测试检查其与当前源码一致 |
+| `contracts/platform/vault-gift.artifact.json` | 内封资产合约编译产物，供运营准备部署和核验 |
 
 ## design-demos
 
@@ -324,6 +326,7 @@
 | 文件 | 用途 |
 | --- | --- |
 | `docs/AI_HANDOFF.md` | 当前 AI 接手入口，功能边界、数据流、路由、环境变量和待办 |
+| `docs/AI_TASK_BRIEF.md` | 本轮三阶段开发任务简报及验收范围 |
 | `docs/API.md` | HTTP 接口、状态与校验约定，包含演示接口演进 |
 | `docs/ARCHITECTURE.md` | 初始架构、模块责任与目标部署设计，顶部指向当前接手说明 |
 | `docs/CREATOR_MODEL.md` | 邀请创作者、授权与收入合作方案 |
@@ -339,6 +342,7 @@
 | `docs/releases/BIRTHDAY_DEMO.md` | 生日三维交付的版本演进、模型与视觉验证记录 |
 | `docs/releases/BIRTHDAY_NFT_PLAN.md` | 生日个例发行准备、固定发布与主网交易追溯记录 |
 | `docs/releases/PLATFORM_DEMO.md` | 平台演示流程、创作者审核及测试网验收操作 |
+| `docs/releases/VAULT_GIFT_DEMO.md` | 生肖特展、内封资产演示和链 97 操作与验证说明 |
 
 ## infra
 
@@ -446,6 +450,8 @@
 | `scripts/testnet-compile.mjs` | 编译平台测试合约，提供 ABI 与字节码 |
 | `scripts/testnet-contract-test.mjs` | 本地链验证付款铸造、整数分账、提款隔离、版数和转让/销毁规则 |
 | `scripts/testnet-deployment.mjs` | 为独立测试赠礼合约生成未签名部署参数 |
+| `scripts/vault-gift-compile.mjs` | 生成或校验内封资产合约的编译产物 |
+| `scripts/vault-gift-contract-test.mjs` | 在隔离链验证内封资产记账、分账、销毁赎回及失败回滚 |
 
 ## src
 
@@ -457,7 +463,9 @@
 | `src/app/api/demo/orders/route.ts` | POST 当前演示赠礼订单，来源校验、JSON 限长、幂等保存与公开返回 |
 | `src/app/api/health/route.ts` | GET 应用健康状态 |
 | `src/app/api/testnet/route.ts` | GET 测试网状态或指定交易核验，确认成功后记录销售 |
+| `src/app/api/testnet/token/route.ts` | 读取测试网代币的符号与小数精度 |
 | `src/app/api/wallet/route.ts` | GET 会话状态，POST 签名挑战、核验和退出，设置 HttpOnly Cookie |
+| `src/app/api/zodiac-assets/[file]/route.ts` | 通过白名单提供生肖 GLB 模型与 PNG 预览 |
 | `src/app/brand-lab/abstract/page.tsx` | 历史抽象 Logo 提案页 |
 | `src/app/brand-lab/classic/page.tsx` | 历史字母/轨道/缎带等 Logo 提案页 |
 | `src/app/brand-lab/crypto/page.tsx` | 历史签名、Merkle、哈希、密码朋克和承诺 Logo 页 |
@@ -486,8 +494,10 @@
 | `src/app/receive/birthday/page.tsx` | 复用 /receive 的生日个例别名 |
 | `src/app/receive/demo/page.tsx` | 使用早期客户端组件的概念礼物开箱原型 |
 | `src/app/receive/page.tsx` | 《计划之外》生日三维收礼页和元数据 |
+| `src/app/series/[slug]/page.tsx` | 主题特展路由，渲染生肖展厅并拒绝无效专题 |
 | `src/app/testnet/page.tsx` | 旧测试网页入口重定向到钱包页 |
 | `src/app/wallet/page.tsx` | 将 WalletConnect 配置、作品购买或部署参数传给钱包交互组件 |
+| `src/app/zodiac/page.tsx` | 将旧生肖入口重定向到主题特展，保留查询参数 |
 | `src/components/birthday-parcel.ts` | 在生日共享三维舞台中创建纸盒与包装结构 |
 | `src/components/birthday-receive.tsx` | 生日礼物开箱状态、信件、署名日期、提示与固定交易通知 |
 | `src/components/birthday-scene.tsx` | 生日 GLB 加载与渲染、星光、太阳材质、相机拖动/缩放、移动端性能和失败降级 |
@@ -498,12 +508,19 @@
 | `src/components/gift-sculpture.tsx` | 早期黑金三维礼盒包装网格、开盖、拖动及降级展示 |
 | `src/components/platform-receive.tsx` | 通用作品开箱、直接显示信件和规则，接收演示或测试网结果 |
 | `src/components/testnet-issuance.tsx` | 后台测试版发行客户端入口，填写收款地址并跳到钱包完成部署 |
-| `src/components/wallet-login.tsx` | 多插件发现、OKX/币安/MetaMask/WalletConnect 连接、签名登录、部署和购买交易 |
+| `src/components/vault-fields.tsx` | 选填内封资产的共用表单与测试网代币确认 |
+| `src/components/vault-plaque.tsx` | 内封资产铭牌、长按销毁流程与赎回记录 |
+| `src/components/wallet-login.tsx` | 钱包发现和登录、测试部署、赠礼、代币授权及持有人销毁赎回 |
+| `src/components/zodiac-stage.tsx` | 生肖 GLB 的实时三维渲染、滤镜和启封动画 |
+| `src/components/zodiac-studio.tsx` | 生肖特展、生肖选择、信纸和模拟赠礼交互 |
 | `src/domain/artwork-policy.ts` | 创作者转让/销毁规则、分成类型、整数最小单位分账与规则文案 |
 | `src/domain/catalog.ts` | 内置三件概念作品、Artwork 类型、祝福及图像地址辅助函数 |
 | `src/domain/creator-applications.ts` | 作者申请类型、作品链接和字段校验、申请记录生成 |
 | `src/domain/gifts.ts` | 早期演示赠礼服务，身份输入校验、内存容量和幂等保护 |
 | `src/domain/orders.ts` | 演示订单类型、仓储约定、输入校验、快照和公开结果 |
+| `src/domain/series.ts` | 主题特展注册表及生肖特展资料 |
+| `src/domain/vault-gift.ts` | 内封资产类型、输入解析及最小单位转换 |
+| `src/domain/zodiac.ts` | 十二生肖作品、模型地址与筛选配置 |
 | `src/lib/test-gift.ts` | 钱包和服务端使用的平台测试赠礼合约 ABI |
 | `src/lib/testnet.ts` | BSC 测试网链 97、RPC、浏览器和 tBNB 参数 |
 | `src/ports/integrations.ts` | 早期身份解析、钱包认证和链上核验的目标接口类型，实际接入模块另见 server |
@@ -517,8 +534,9 @@
 | `src/server/public-catalog.ts` | 将运营已陈列作品与内置概念目录合并，供页面与接口共用 |
 | `src/server/request-json.ts` | JSON 请求流式字节限长与标准输入错误 |
 | `src/server/revenue-config.ts` | 读取并验证服务端分成比例和版本，创建新订单快照 |
-| `src/server/testnet-gifts.ts` | 测试网节点、三次确认、原始调用/金额/事件/区块核验和销售入账 |
-| `src/server/testnet-release.ts` | 按作品生成部署参数，核验链上部署与价格/分成/元数据并准备绑定 |
+| `src/server/testnet-gifts.ts` | 测试网节点，核验普通/内封资产赠礼以及三次确认，销售按售价入账 |
+| `src/server/testnet-release.ts` | 按作品生成内封资产合约部署参数，验证新旧测试发行版后绑定 |
+| `src/server/testnet-vault.ts` | 读取已确认的内封资产、当前持有人及赎回事件 |
 | `src/server/wallet-auth.ts` | 一次性钱包签名挑战、站点/浏览器/过期校验、会话读取和撤销 |
 
 ## tests

@@ -5,8 +5,8 @@ import { resolve } from 'node:path';
 import solc from 'solc';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-export async function compileTestnet() {
-  const filename = 'MementTestGift.sol';
+export async function compileTestnet(name = 'MementTestGift') {
+  const filename = name + '.sol';
   const content = await readFile(resolve(root, 'contracts/platform', filename), 'utf8');
   const input = {
     language: 'Solidity',
@@ -20,7 +20,10 @@ export async function compileTestnet() {
   } }));
   const errors = (result.errors ?? []).filter(error => error.severity === 'error');
   if (errors.length) throw new Error(errors.map(error => error.formattedMessage).join('\n'));
-  const contract = result.contracts[filename].MementTestGift;
+  const contract = result.contracts[filename][name];
+  return contractArtifact(contract);
+}
+function contractArtifact(contract) {
   return { abi: contract.abi, bytecode: '0x' + contract.evm.bytecode.object, runtime: '0x' + contract.evm.deployedBytecode.object, immutableReferences: contract.evm.deployedBytecode.immutableReferences };
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

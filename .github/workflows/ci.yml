@@ -15,5 +15,5 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run test:nft
-      - run: node --test scripts/testnet-contract-test.mjs
+      - run: node --test scripts/testnet-contract-test.mjs scripts/vault-gift-contract-test.mjs
       - run: npm run build
