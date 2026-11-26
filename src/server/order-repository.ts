@@ -1,3 +1,4 @@
+import { parseReservePlan } from '../domain/reserve-plan';
 import { platformDirectory } from './data-directory';
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync, chmodSync } from 'node:fs';
@@ -31,11 +32,21 @@ export class SqliteOrderRepository implements OrderRepository {
       if (existing) {
         const previousInput = JSON.parse(existing.fingerprint as string);
         delete previousInput.publicMessageAccepted; // Ignore the retired checkbox in saved demo requests.
+        if (previousInput.reserve?.unlock === 'price' && previousInput.reserve.maxYears === undefined) {
+          previousInput.reserve = parseReservePlan(previousInput.reserve);
+        }
         if (JSON.stringify(previousInput) !== fingerprint) throw new OrderInputError('同一请求标识不能创建不同订单。');
         const order = JSON.parse(existing.payload as string) as DemoOrder;
         if (Date.parse(order.expiresAt) <= Date.now()) throw new OrderInputError('预览已过期，请重新填写。');
         result = { order, replay: true };
       } else {
+        if (candidate.vault?.unlockTime && candidate.vault.unlockTime <= Math.floor(Date.now() / 1000)) {
+          throw new OrderInputError('请选择未来的有效开启时间。');
+        }
+        const initialDate = candidate.reserve?.date ?? candidate.agreement?.date;
+        if (initialDate && Date.parse(initialDate) <= Date.now()) {
+          throw new OrderInputError('请选择未来的有效开启时间。');
+        }
         this.db.prepare('DELETE FROM demo_orders WHERE expires_at <= ?').run(new Date().toISOString());
         const count = this.db.prepare('SELECT COUNT(*) AS total FROM demo_orders').get()!.total as number;
         if (count >= this.capacity) throw new OrderInputError('本地演示记录已满，请稍后再试。');

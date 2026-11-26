@@ -134,3 +134,34 @@ test('non-burnable editions only allow plain gifts and rejecting recipients keep
   assert.equal((await gift.vaultAssets(1)).redeemed, false);
   assert.equal(await gift.reserved(ZeroAddress), 20n);
 });
+
+test('native and token vault time locks guard both burn paths until the unlock timestamp', async t => {
+  const { deploy, holder, provider, fixture } = await setup(t);
+  const gift = await deploy();
+  const address = await gift.getAddress();
+  const head = await provider.getBlock('latest');
+  const unlockTime = head.timestamp + 600;
+  await assert.rejects(gift.mintGiftWithNativeVaultLocked.staticCall(id('stale'), holder.address, '', 500n, head.timestamp, { value: 601n }));
+  await (await gift.mintGiftWithNativeVaultLocked(id('locked-native'), holder.address, '', 500n, unlockTime, { value: 601n })).wait();
+  const token = await fixture('MockToken', 0);
+  const tokenAddress = await token.getAddress();
+  await (await token.approve(address, 200n)).wait();
+  await (await gift.mintGiftWithTokenVaultLocked(id('locked-token'), holder.address, '', tokenAddress, 200n, unlockTime, { value: 101n })).wait();
+  assert.equal((await gift.vaultAssets(1)).unlockTime, BigInt(unlockTime));
+  assert.equal((await gift.vaultAssets(2)).unlockTime, BigInt(unlockTime));
+  for (const tokenId of [1, 2]) {
+    await assert.rejects(gift.connect(holder).burnAndRedeem.staticCall(tokenId), /VaultTimeLocked/);
+    await assert.rejects(gift.connect(holder).burn.staticCall(tokenId), /VaultTimeLocked/);
+    assert.equal(await gift.ownerOf(tokenId), holder.address);
+  }
+  await provider.send('evm_increaseTime', [601]);
+  await provider.send('evm_mine', []);
+  const receipt = await (await gift.connect(holder).burnAndRedeem(1)).wait();
+  await (await gift.connect(holder).burn(2)).wait();
+  assert.equal((await gift.vaultAssets(1)).received, 500n);
+  assert.equal((await gift.vaultAssets(2)).received, 200n);
+  assert.equal(await provider.getBalance(address, receipt.blockNumber), 202n);
+  assert.equal(await token.balanceOf(holder.address), 200n);
+  await assert.rejects(gift.ownerOf(1));
+  await assert.rejects(gift.ownerOf(2));
+});

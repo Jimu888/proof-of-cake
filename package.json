@@ -11,7 +11,7 @@
     "build": "next build",
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/*.test.ts",
+    "test": "node --import tsx --test tests/*.test.ts",
     "build:birthday": "node scripts/build-birthday-demo.mjs",
     "compile:nft": "node scripts/birthday-nft-compile.mjs",
     "test:nft": "node --test scripts/birthday-nft-test.mjs",

@@ -4,7 +4,8 @@ export type ArtworkPolicy = Readonly<{
   holderCanBurn: boolean;
 }>;
 
-export function describeArtworkPolicy(policy: ArtworkPolicy): string {
+export function describeArtworkPolicy(policy: ArtworkPolicy, language: 'en' | 'zh' = 'zh'): string {
+  if (language === 'en') return `${policy.transferable ? 'Transferable' : 'Non-transferable'} · ${policy.holderCanBurn ? 'Holder can burn' : 'Non-burnable'}`;
   return `${policy.transferable ? '可转让' : '不可转让'} · ${policy.holderCanBurn ? '持有人可销毁' : '不可销毁'}`;
 }
 

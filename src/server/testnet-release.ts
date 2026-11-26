@@ -1,5 +1,6 @@
-import { Contract, ContractFactory, getAddress, ZeroAddress, keccak256 } from 'ethers';
+import { Contract, ContractFactory, type InterfaceAbi, getAddress, ZeroAddress, keccak256 } from 'ethers';
 import legacyArtifact from '../../contracts/platform/test-gift.artifact.json';
+import previousVaultArtifact from '../../contracts/platform/vault-gift-v1.artifact.json';
 import artifact from '../../contracts/platform/vault-gift.artifact.json';
 import { getOperations, OperationsError, type TestnetRelease } from './operations';
 import { getRevenueSplit } from './revenue-config';
@@ -30,7 +31,7 @@ export async function prepareRelease(id: string, artist: string, platform: strin
   return { ...release, chainId: '0x61', data };
 }
 
-async function releaseData(release: ReturnType<typeof releaseInputs>, compiled: typeof artifact | typeof legacyArtifact) {
+async function releaseData(release: ReturnType<typeof releaseInputs>, compiled: { abi: InterfaceAbi; bytecode: string }) {
   const { artwork, artistBps } = release;
   const factory = new ContractFactory(compiled.abi, compiled.bytecode);
   const transaction = await factory.getDeployTransaction(release.artist, release.platform, artwork.priceAtomic,
@@ -54,7 +55,8 @@ export async function verifyRelease(id: string, artist: string, platform: string
     if (receipt.status !== 1 || !receipt.contractAddress || !transaction || transaction.to ||
         transaction.value !== 0n) throw new OperationsError('部署交易与当前作品或收款设置不一致。');
     const hashOfData = keccak256(transaction.data);
-    const vault = hashOfData === keccak256(prepared.data);
+    const vault = hashOfData === keccak256(prepared.data) ||
+      hashOfData === keccak256(await releaseData(prepared, previousVaultArtifact));
     if (!vault && hashOfData !== keccak256(await releaseData(prepared, legacyArtifact))) {
       throw new OperationsError('部署交易与当前作品或收款设置不一致。');
     }

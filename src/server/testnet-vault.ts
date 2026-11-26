@@ -13,16 +13,21 @@ export async function readVaultToken(provider: JsonRpcProvider, rawAddress: stri
   return { symbol: rawSymbol, decimals };
 }
 
-export async function readGiftVault(provider: JsonRpcProvider, address: string, tokenId: bigint, height: number): Promise<VaultAsset | undefined> {
+export async function readGiftVault(provider: JsonRpcProvider, address: string, tokenId: bigint, height: number, unlockTime?: number): Promise<VaultAsset | undefined> {
   // Use a confirmed snapshot for the wallet owner, accounting and redemption history.
   const blockTag = height - 2;
   const contract = new Contract(address, vaultGiftAbi, provider);
-  const asset = await contract.vaultAssets(tokenId, { blockTag });
+  // Older editions expose seven return values, while time-lock editions append the timestamp.
+  const ledger = unlockTime === undefined ? contract : new Contract(address, [
+    vaultGiftAbi.find(entry => entry.startsWith('function vaultAssets'))!.replace('uint256 received)', 'uint256 received,uint64 unlockTime)'),
+  ], provider);
+  const asset = await ledger.vaultAssets(tokenId, { blockTag });
+  if (unlockTime !== undefined && asset.unlockTime !== BigInt(unlockTime)) throw new Error('Time lock does not match confirmed purchase');
   if (asset.amount === 0n) return;
   const meta = asset.token === ZeroAddress
     ? { symbol: testnetNativeSymbol, decimals: 18 }
     : await readVaultToken(provider, asset.token).catch(() => undefined);
-  const result: VaultAsset = { token: asset.token, amount: String(asset.amount), ...meta };
+  const result: VaultAsset = { token: asset.token, amount: String(asset.amount), unlockTime, ...meta };
   if (!asset.redeemed) {
     result.owner = await contract.ownerOf(tokenId, { blockTag });
     return result;

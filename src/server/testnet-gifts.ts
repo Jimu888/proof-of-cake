@@ -41,8 +41,9 @@ export async function readTestnetGift(provider: JsonRpcProvider, transaction: st
   ]);
   if (!submitted || submitted.blockHash !== receipt.blockHash) return null;
   const purchase = giftInterface.parseTransaction({ data: submitted.data, value: submitted.value });
-  const native = purchase?.name === 'mintGiftWithNativeVault';
-  const token = purchase?.name === 'mintGiftWithTokenVault';
+  const native = purchase?.name === 'mintGiftWithNativeVault' || purchase?.name === 'mintGiftWithNativeVaultLocked';
+  const token = purchase?.name === 'mintGiftWithTokenVault' || purchase?.name === 'mintGiftWithTokenVaultLocked';
+  const unlockTime = purchase?.name.endsWith('VaultLocked') ? Number(purchase.args.unlockTime) : undefined;
   const vaulted = native || token;
   const paid = BigInt(price) + (native ? BigInt(purchase.args.vaultAmount) : 0n);
   const funded = vaulted && logs.find(log => log?.name === 'VaultFunded' && log.args.tokenId === gift.args.tokenId);
@@ -61,7 +62,7 @@ export async function readTestnetGift(provider: JsonRpcProvider, transaction: st
   if (!Number.isInteger(artistBps) || artistBps < 0 || artistBps > 10000 || price === null) throw new Error('Invalid split');
   const amount = BigInt(price);
   const platformAmount = amount * BigInt(10000 - artistBps) / 10000n;
-  const vault = vaulted ? await readGiftVault(provider, contract, gift.args.tokenId, block) : undefined;
+  const vault = vaulted ? await readGiftVault(provider, contract, gift.args.tokenId, block, unlockTime) : undefined;
   if (funded && (vault?.token !== funded.args.token || vault?.amount !== String(funded.args.amount))) {
     throw new Error('Vault balance record does not match confirmed funding');
   }

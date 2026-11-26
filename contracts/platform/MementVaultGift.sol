@@ -8,6 +8,16 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
+/// @notice Atlas Oracle Push Single-Feed interface (Chainlink AggregatorV2V3 compatible).
+/// @dev See https://docs.atlasoracle.io (oracle-atlas/push-oracle-interfaces).
+interface IAtlasSingleFeed {
+    function decimals() external view returns (uint8);
+    function latestRoundData()
+        external
+        view
+        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);
+}
+
 /// @notice Fixed edition for chain 97. Vault balances are distinct from sales proceeds.
 /// @dev Compatible ERC-20 balances must remain stable outside transfers. Issuer freezes,
 ///      rebases and transfer restrictions can prevent redemption of the affected token.
@@ -15,6 +25,8 @@ contract MementVaultGift is ERC721, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     error InvalidVault();
+    error VaultTimeLocked();
+    error MilestoneNotReached();
     error WrongChain();
     error InvalidConfiguration();
     error WrongPrice();
@@ -31,7 +43,14 @@ contract MementVaultGift is ERC721, ReentrancyGuard {
     event ProceedsWithdrawn(address indexed payee, uint256 amount);
     event Locked(uint256 tokenId);
     event VaultFunded(uint256 indexed tokenId, address indexed token, uint256 amount);
+    event MilestoneConfigured(uint256 indexed tokenId, address indexed atlasFeed, int256 targetPrice, uint64 maxDeadline);
     event GiftRedeemed(uint256 indexed tokenId, address indexed redeemer, address indexed token, uint256 amount);
+
+    struct PriceMilestone {
+        address atlasFeed;
+        int256 targetPrice;
+        uint64 maxDeadline;
+    }
 
     struct VaultAsset {
         address token;
@@ -41,9 +60,11 @@ contract MementVaultGift is ERC721, ReentrancyGuard {
         uint256 redeemedAt;
         uint256 redeemedBlock;
         uint256 received;
+        uint64 unlockTime;
     }
 
     mapping(uint256 => VaultAsset) public vaultAssets;
+    mapping(uint256 => PriceMilestone) public priceMilestones;
     mapping(address => uint256) public reserved;
 
 
@@ -75,6 +96,10 @@ contract MementVaultGift is ERC721, ReentrancyGuard {
         metadata = metadata_;
     }
 
+    function supportsTimeLock() external pure returns (bool) {
+        return true;
+    }
+
     function buyGift(bytes32 orderId, address recipient, string calldata message) external payable nonReentrant returns (uint256 tokenId) {
         if (msg.value != price) revert WrongPrice();
         tokenId = _bookGift(orderId, recipient, message);
@@ -82,18 +107,60 @@ contract MementVaultGift is ERC721, ReentrancyGuard {
     }
 
     function mintGiftWithNativeVault(bytes32 orderId, address recipient, string calldata message, uint256 vaultAmount)
-        external payable nonReentrant returns (uint256 tokenId)
+        external payable nonReentrant returns (uint256)
+    {
+        return _mintGiftWithNativeVault(orderId, recipient, message, vaultAmount, 0);
+    }
+
+    function mintGiftWithNativeVaultLocked(bytes32 orderId, address recipient, string calldata message, uint256 vaultAmount, uint64 unlockTime)
+        external payable nonReentrant returns (uint256)
+    {
+        if (unlockTime <= block.timestamp) revert InvalidVault();
+        return _mintGiftWithNativeVault(orderId, recipient, message, vaultAmount, unlockTime);
+    }
+
+    /// @notice Mints a gift NFT whose native vault unlocks when Atlas Oracle reaches targetPrice or maxDeadline elapses.
+    function mintGiftWithAtlasMilestone(
+        bytes32 orderId,
+        address recipient,
+        string calldata message,
+        uint256 vaultAmount,
+        address atlasFeed,
+        int256 targetPrice,
+        uint64 maxDeadline
+    ) external payable nonReentrant returns (uint256 tokenId) {
+        if (atlasFeed.code.length == 0 || targetPrice <= 0 || maxDeadline <= block.timestamp) revert InvalidVault();
+        tokenId = _mintGiftWithNativeVault(orderId, recipient, message, vaultAmount, 0);
+        priceMilestones[tokenId] = PriceMilestone({ atlasFeed: atlasFeed, targetPrice: targetPrice, maxDeadline: maxDeadline });
+        emit MilestoneConfigured(tokenId, atlasFeed, targetPrice, maxDeadline);
+    }
+
+    function _mintGiftWithNativeVault(bytes32 orderId, address recipient, string calldata message, uint256 vaultAmount, uint64 unlockTime)
+        private returns (uint256 tokenId)
     {
         if (!holderCanBurn) revert BurnDisabled();
         if (vaultAmount == 0) revert InvalidVault();
         if (msg.value < price || msg.value - price != vaultAmount) revert WrongPrice();
         tokenId = _bookGift(orderId, recipient, message);
-        _fund(tokenId, address(0), vaultAmount);
+        _fund(tokenId, address(0), vaultAmount, unlockTime);
         _deliver(orderId, recipient, message, tokenId);
     }
 
     function mintGiftWithTokenVault(bytes32 orderId, address recipient, string calldata message, address token, uint256 desiredAmount)
-        external payable nonReentrant returns (uint256 tokenId)
+        external payable nonReentrant returns (uint256)
+    {
+        return _mintGiftWithTokenVault(orderId, recipient, message, token, desiredAmount, 0);
+    }
+
+    function mintGiftWithTokenVaultLocked(bytes32 orderId, address recipient, string calldata message, address token, uint256 desiredAmount, uint64 unlockTime)
+        external payable nonReentrant returns (uint256)
+    {
+        if (unlockTime <= block.timestamp) revert InvalidVault();
+        return _mintGiftWithTokenVault(orderId, recipient, message, token, desiredAmount, unlockTime);
+    }
+
+    function _mintGiftWithTokenVault(bytes32 orderId, address recipient, string calldata message, address token, uint256 desiredAmount, uint64 unlockTime)
+        private returns (uint256 tokenId)
     {
         if (!holderCanBurn) revert BurnDisabled();
         if (msg.value != price) revert WrongPrice();
@@ -105,7 +172,7 @@ contract MementVaultGift is ERC721, ReentrancyGuard {
         asset.safeTransferFrom(msg.sender, address(this), desiredAmount);
         uint256 afterBalance = asset.balanceOf(address(this));
         if (afterBalance <= beforeBalance || afterBalance - beforeBalance > desiredAmount) revert InvalidVault();
-        _fund(tokenId, token, afterBalance - beforeBalance);
+        _fund(tokenId, token, afterBalance - beforeBalance, unlockTime);
         _deliver(orderId, recipient, message, tokenId);
     }
 
@@ -120,9 +187,10 @@ contract MementVaultGift is ERC721, ReentrancyGuard {
         proceeds[platform] += platformAmount;
     }
 
-    function _fund(uint256 tokenId, address token, uint256 amount) private {
+    function _fund(uint256 tokenId, address token, uint256 amount, uint64 unlockTime) private {
         vaultAssets[tokenId].token = token;
         vaultAssets[tokenId].amount = amount;
+        vaultAssets[tokenId].unlockTime = unlockTime;
         reserved[token] += amount;
         emit VaultFunded(tokenId, token, amount);
     }
@@ -155,6 +223,15 @@ contract MementVaultGift is ERC721, ReentrancyGuard {
         if (ownerOf(tokenId) != msg.sender) revert HolderOnly();
 
         VaultAsset storage asset = vaultAssets[tokenId];
+        if (block.timestamp < asset.unlockTime) revert VaultTimeLocked();
+        PriceMilestone storage milestone = priceMilestones[tokenId];
+        if (milestone.atlasFeed != address(0) && block.timestamp < milestone.maxDeadline) {
+            (uint80 roundId, int256 answer, , uint256 updatedAt, uint80 answeredInRound) =
+                IAtlasSingleFeed(milestone.atlasFeed).latestRoundData();
+            bool fresh = roundId != 0 && answeredInRound >= roundId && updatedAt != 0 &&
+                updatedAt <= block.timestamp && block.timestamp - updatedAt <= 3600;
+            if (!fresh || answer < milestone.targetPrice) revert MilestoneNotReached();
+        }
         uint256 amount = asset.amount;
         address token = asset.token;
         asset.redeemed = true;

@@ -1,8 +1,8 @@
 # 仓库逐文件说明
 
-更新于 2026-11-23。每个入库文件占一行。阅读当前实现先看 `AI_HANDOFF.md`，历史原型可按需查看。运行时数据库、环境文件、依赖与构建产物由忽略规则管理。新增、删除或移动文件时请同步本索引。
+更新于 2026-11-24。每个入库文件占一行。阅读当前实现先看 `AI_HANDOFF.md`，历史原型可按需查看。运行时数据库、环境文件、依赖与构建产物由忽略规则管理。新增、删除或移动文件时请同步本索引。
 
-本索引覆盖 496 个文件，包括本文件。压缩包内部清单由归档源提交确定，见 `archives/README.md`。
+本索引覆盖 505 个文件，包括本文件。压缩包内部清单由归档源提交确定，见 `archives/README.md`。
 
 ## .github
 
@@ -37,9 +37,12 @@
 | --- | --- |
 | `contracts/README.md` | 生日个例和平台测试合约的用途及验证入口 |
 | `contracts/birthday/MementBirthday.sol` | 生日个例单枚不可转让 NFT 合约，发行者直接铸造、持有人按规则销毁 |
+| `contracts/platform/MementGroupGift.sol` | 链 97 多人合礼，凑齐后原子铸造并封存共同心意金，过期可逐人退款 |
+| `contracts/platform/MementLoveVault.sol` | 链 97 双钱包契约，独立平台随礼池、双签结算与单方冷静期退出 |
 | `contracts/platform/MementTestGift.sol` | 平台测试赠礼合约，固定价格与版数、付款铸造、订单防重、可提分成和转让/销毁规则 |
-| `contracts/platform/MementVaultGift.sol` | 链 97 赠礼合约，按售价分账，支持原生币或兼容代币内封和销毁赎回 |
+| `contracts/platform/MementVaultGift.sol` | 链 97 赠礼合约，支持原生币或兼容代币内封、可选时间锁及销毁赎回 |
 | `contracts/platform/test-gift.artifact.json` | 平台测试合约 ABI 与部署字节码，合约测试检查其与当前源码一致 |
+| `contracts/platform/vault-gift-v1.artifact.json` | 历史内封资产发行版产物，用于兼容已广播的旧版测试网部署核验 |
 | `contracts/platform/vault-gift.artifact.json` | 内封资产合约编译产物，供运营准备部署和核验 |
 
 ## design-demos
@@ -47,6 +50,8 @@
 | 文件 | 用途 |
 | --- | --- |
 | `design-demos/README.md` | 初轮设计与参考的说明、选择状态及检查记录 |
+| `design-demos/boutique-concepts/final-cabinet-zodiac-3d.jpg` | V5 生肖雕塑展柜定稿参考 |
+| `design-demos/boutique-concepts/final-cabinet-anime-2d.jpg` | V5 冷银平面装裱展柜定稿参考 |
 | `design-demos/assets/study-1.svg` | 初轮设计与参考独立矢量插画 study-1 |
 | `design-demos/assets/study-2.svg` | 初轮设计与参考独立矢量插画 study-2 |
 | `design-demos/assets/study-3.svg` | 初轮设计与参考独立矢量插画 study-3 |
@@ -327,6 +332,11 @@
 | --- | --- |
 | `docs/AI_HANDOFF.md` | 当前 AI 接手入口，功能边界、数据流、路由、环境变量和待办 |
 | `docs/AI_TASK_BRIEF.md` | 本轮三阶段开发任务简报及验收范围 |
+| `docs/AI_TASK_BRIEF_V2.md` | V2 视觉精修、封缄仪式、二维码及独立生肖收礼任务单 |
+| `docs/AI_TASK_BRIEF_V3_VITRINE.md` | V3 首页橱窗的比例、壁龛、灯光、文案与精选规则 |
+| `docs/AI_TASK_BRIEF_V4_POSTER.md` | V4 首页居中四角海报构图与移动端适配要求 |
+| `docs/AI_TASK_BRIEF_V5_FINAL_CABINET.md` | V5 三色体系、定稿展柜、装裱和中英双语验收要求 |
+| `docs/AI_TASK_BRIEF_V6_VAULTS.md` | V6 双语微提示、时间锁、新年胶囊、爱情基金、合买和定投预告任务单 |
 | `docs/API.md` | HTTP 接口、状态与校验约定，包含演示接口演进 |
 | `docs/ARCHITECTURE.md` | 初始架构、模块责任与目标部署设计，顶部指向当前接手说明 |
 | `docs/CREATOR_MODEL.md` | 邀请创作者、授权与收入合作方案 |
@@ -401,6 +411,7 @@
 | `public/brand-studies/mement-v7/d-tag.svg` | 像素礼盒/包裹/开箱/吊牌/信封 Logo 矢量候选 d-tag，用于品牌对照页 |
 | `public/brand-studies/mement-v7/e-letter.svg` | 像素礼盒/包裹/开箱/吊牌/信封 Logo 矢量候选 e-letter，用于品牌对照页 |
 | `public/brand-studies/mement.svg` | 早期命名 Logo 矢量候选 mement，用于品牌对照页 |
+| `public/cryptogift/snowflake.png`、`public/cryptogift/algorithmic-bond.png` | 样例地址生成的静帧，供通用图像目录显示 |
 | `public/cryptogift/FONT-LICENSES.txt` | 首页自托管字体许可与来源 |
 | `public/cryptogift/birthday-hand-OFL.txt` | 生日手写字体开放许可 |
 | `public/cryptogift/birthday-hand.woff` | 生日信件用手写字体 |
@@ -446,12 +457,14 @@
 | `scripts/cryptogift_qa.py` | 早期黑金首页及收礼交互的浏览器检查 |
 | `scripts/design_qa.py` | 第一轮静态设计原型的浏览器与响应式检查 |
 | `scripts/design_round2_qa.py` | 第二轮三个作者风格原型的交互及响应式检查 |
+| `scripts/group-gift-contract-test.mjs` | 本地链验证合买原子铸造、超额拒收、铸造回滚和超时退款 |
+| `scripts/love-vault-contract-test.mjs` | 本地链验证双签、独立随礼池、分开条款、冷静期与重入防护 |
 | `scripts/seed-showcase.ts` | 生成联动的三位示例作者、三件作品、六笔样例订单及一笔模拟结算 |
 | `scripts/testnet-compile.mjs` | 编译平台测试合约，提供 ABI 与字节码 |
 | `scripts/testnet-contract-test.mjs` | 本地链验证付款铸造、整数分账、提款隔离、版数和转让/销毁规则 |
 | `scripts/testnet-deployment.mjs` | 为独立测试赠礼合约生成未签名部署参数 |
 | `scripts/vault-gift-compile.mjs` | 生成或校验内封资产合约的编译产物 |
-| `scripts/vault-gift-contract-test.mjs` | 在隔离链验证内封资产记账、分账、销毁赎回及失败回滚 |
+| `scripts/vault-gift-contract-test.mjs` | 隔离链验证内封资产记账、时间锁、销毁赎回、分账及失败回滚 |
 
 ## src
 
@@ -460,7 +473,9 @@
 | `src/app/api/catalog/route.ts` | GET 统一已陈列与概念作品目录及预设祝福 |
 | `src/app/api/demo/creator-applications/route.ts` | POST 作者申请，支持 JSON 和带附件表单，来源校验及幂等入队 |
 | `src/app/api/demo/gifts/route.ts` | POST 早期临时赠礼演示接口，保留兼容 |
-| `src/app/api/demo/orders/route.ts` | POST 当前演示赠礼订单，来源校验、JSON 限长、幂等保存与公开返回 |
+| `src/app/api/demo/orders/route.ts` | POST 赠礼快照，保留演示字段，核验社区代币流动性并幂等保存 |
+| `src/app/api/gather/route.ts` | 合赠集结的创建、查询与席位加入 |
+| `src/app/api/market/token/route.ts` | BSC 参考价及 PancakeSwap 流动性查询 |
 | `src/app/api/health/route.ts` | GET 应用健康状态 |
 | `src/app/api/testnet/route.ts` | GET 测试网状态或指定交易核验，确认成功后记录销售 |
 | `src/app/api/testnet/token/route.ts` | 读取测试网代币的符号与小数精度 |
@@ -476,8 +491,9 @@
 | `src/app/creators/studio/actions.ts` | 服务端投稿操作，验证授权和输入、检查图片头与像素、缩放转 WebP 后保存 |
 | `src/app/creators/studio/form.tsx` | 投稿表单，凭证、图像/封面、简介、售价、版数和发行规则 |
 | `src/app/creators/studio/page.tsx` | 创作者投稿工作台页面入口 |
-| `src/app/gift/[token]/page.tsx` | 读取随机令牌对应的有效演示订单并渲染收礼页 |
+| `src/app/gift/[token]/page.tsx` | 随机令牌收礼入口，按持久订单渲染普通或生肖收礼页 |
 | `src/app/gift/testnet/[transaction]/page.tsx` | 核验测试网交易后呈现收礼，处理待确认和无效记录 |
+| `src/app/gift/zodiac/page.tsx` | 校验生肖收礼参数，解码短分享链接并渲染独立启封页 |
 | `src/app/gifts/[id]/page.tsx` | 按作品 ID 读取已陈列作品与测试发行状态，渲染详情及赠礼组件 |
 | `src/app/globals.css` | 站点通用样式、品牌探索页及生日三维收礼体验样式 |
 | `src/app/layout.tsx` | 应用根布局、中文语言和站点元数据 |
@@ -490,43 +506,75 @@
 | `src/app/ops/page.tsx` | 运营密钥登录页，已登录跳转作者审核 |
 | `src/app/ops/sales.csv/route.ts` | 运营销售 CSV 导出，校验权限和过滤条件 |
 | `src/app/page.tsx` | 首页服务端入口，读取统一目录并渲染首页组件 |
-| `src/app/platform.css` | 平台详情/表单/收礼页、创作者和运营后台样式 |
+| `src/app/platform.css` | Palette 2 平台外观、磨砂玻璃展柜、装裱与响应式布局，以及独立运营后台样式 |
 | `src/app/receive/birthday/page.tsx` | 复用 /receive 的生日个例别名 |
 | `src/app/receive/demo/page.tsx` | 使用早期客户端组件的概念礼物开箱原型 |
 | `src/app/receive/page.tsx` | 《计划之外》生日三维收礼页和元数据 |
-| `src/app/series/[slug]/page.tsx` | 主题特展路由，渲染生肖展厅并拒绝无效专题 |
+| `src/app/series/[slug]/page.tsx` | 唯一公开特展为生肖。保留旧新年时间胶囊入口，旧爱情基金入口转至算法红线 |
+| `src/app/series/new-year/receive/page.tsx` | 新年时间胶囊独立收礼预览，客户端读取邀请链接 |
 | `src/app/testnet/page.tsx` | 旧测试网页入口重定向到钱包页 |
 | `src/app/wallet/page.tsx` | 将 WalletConnect 配置、作品购买或部署参数传给钱包交互组件 |
-| `src/app/zodiac/page.tsx` | 将旧生肖入口重定向到主题特展，保留查询参数 |
+| `src/app/zodiac/page.tsx` | 将旧生肖入口重定向到展厅或生肖收礼，透传查询参数 |
+| `src/components/algorithmic-bond-art.tsx` | 暖纸制图海报、确定性一笔红线及阻尼微风交互 |
+| `src/components/art-canvas.ts` | 高 DPI 画布、帧循环、尺寸侦测及减少动态效果 |
+| `src/components/artwork-presentation.tsx` | 共用雕塑、冷银装裱、水墨纸本、静音循环视频与按地址生成的实时画布 |
 | `src/components/birthday-parcel.ts` | 在生日共享三维舞台中创建纸盒与包装结构 |
 | `src/components/birthday-receive.tsx` | 生日礼物开箱状态、信件、署名日期、提示与固定交易通知 |
 | `src/components/birthday-scene.tsx` | 生日 GLB 加载与渲染、星光、太阳材质、相机拖动/缩放、移动端性能和失败降级 |
 | `src/components/birthday-view-config.ts` | 生日原作相机、目标、视场角和水平/垂直旋转范围 |
 | `src/components/creator-application.tsx` | 作者申请客户端表单，多个作品链接、附件及提交反馈 |
-| `src/components/crypto-gift.tsx` | 平台首页与旧收礼原型，短暂开场、统一网格、详情及旧客户端赠言流程 |
-| `src/components/gift-checkout.tsx` | 作品详情、规则说明、祝福输入、订单核对和演示分享链接 |
+| `src/components/crypto-gift.tsx` | 平台首页的一体式展柜、常设与特展切换、三件精选，以及旧收礼原型 |
+| `src/components/gift-checkout.tsx` | 普通、生成艺术与生肖共用五步柜台，含场景光、实时信纸、封盒和 PNG 邀请函 |
+| `src/components/gift-ritual.tsx` | 共用封缄过场、两秒长按时间及音效偏好控件 |
 | `src/components/gift-sculpture.tsx` | 早期黑金三维礼盒包装网格、开盖、拖动及降级展示 |
-| `src/components/platform-receive.tsx` | 通用作品开箱、直接显示信件和规则，接收演示或测试网结果 |
+| `src/components/group-gift.tsx` | 共用柜台的 AA 集结、最小单位分摊、演示邀请、截止及多人折叠信笺 |
+| `src/components/info-tip.tsx` | 双语微提示，支持悬停、焦点、轻点、外部关闭和视口定位 |
+| `src/components/love-vault.tsx` | 爱情契约条款表单及发礼/收礼共享的双签、冷静期和随礼模拟 |
+| `src/components/new-year-capsule.tsx` | 旧新年胶囊入口，沿用倒计时及二维码，并复用可编辑礼金配置 |
+| `src/components/reserve-fields.tsx` | 单笔和定投计划、社区代币核验状态与三类解锁及收礼进度 |
+| `src/components/platform-receive.tsx` | 通用开箱仪式、按订单地址生成画布、信件、金库状态及典藏档案 |
+| `src/components/snowflake-art.tsx` | 六折对称雪花、结晶动效及 Baton 2 透明纹理生成器 `renderSnowflakeSprite` |
 | `src/components/testnet-issuance.tsx` | 后台测试版发行客户端入口，填写收款地址并跳到钱包完成部署 |
-| `src/components/vault-fields.tsx` | 选填内封资产的共用表单与测试网代币确认 |
-| `src/components/vault-plaque.tsx` | 内封资产铭牌、长按销毁流程与赎回记录 |
+| `src/components/vault-exhibition.tsx` | 旧新年胶囊兼容页使用的展柜、双语导航和建筑轮廓图形 |
+| `src/components/vault-fields.tsx` | 选填心意金、测试网代币确认、可选开启时间锁和 DCA 计划预览 |
+| `src/components/vault-plaque.tsx` | 心意金铭牌、时间锁倒计时、长按销毁流程和赎回记录 |
+| `src/components/vault-preview-controls.tsx` | 共用倒计时、本地时间输入格式和两秒长按确认 |
+| `src/components/winter-cabin-entry.tsx` | 雪花赏雪入口、按需加载及返回焦点 |
+| `src/components/winter-cabin-scene.tsx` | Three.js 松林、木屋、壁炉、窗座、108 片雪花与可选环境音 |
+| `src/components/wallet-trigger.tsx` | 右上角钱包入口、可访问弹窗与服务端签名登录 |
 | `src/components/wallet-login.tsx` | 钱包发现和登录、测试部署、赠礼、代币授权及持有人销毁赎回 |
-| `src/components/zodiac-stage.tsx` | 生肖 GLB 的实时三维渲染、滤镜和启封动画 |
-| `src/components/zodiac-studio.tsx` | 生肖特展、生肖选择、信纸和模拟赠礼交互 |
+| `src/components/zodiac-receive.tsx` | 独立生肖启封、三维赏玩、信笺、演示销毁及纪念档案 |
+| `src/components/zodiac-stage.tsx` | 生肖 GLB 透明渲染、展柜布光、辉光、地面阴影、滤镜与启封动画 |
+| `src/components/zodiac-studio.tsx` | 生肖展厅与送礼封缄、信纸和二维码邀请函 |
 | `src/domain/artwork-policy.ts` | 创作者转让/销毁规则、分成类型、整数最小单位分账与规则文案 |
-| `src/domain/catalog.ts` | 内置三件概念作品、Artwork 类型、祝福及图像地址辅助函数 |
+| `src/domain/catalog.ts` | 概念作品、Artwork 类型、展示模式推断、创作者署名与图像地址 |
 | `src/domain/creator-applications.ts` | 作者申请类型、作品链接和字段校验、申请记录生成 |
+| `src/domain/gifting-modes.ts` | 赠礼模式、样例 EVM 地址、双钱包条款与多人祝福校验 |
 | `src/domain/gifts.ts` | 早期演示赠礼服务，身份输入校验、内存容量和幂等保护 |
-| `src/domain/orders.ts` | 演示订单类型、仓储约定、输入校验、快照和公开结果 |
-| `src/domain/series.ts` | 主题特展注册表及生肖特展资料 |
-| `src/domain/vault-gift.ts` | 内封资产类型、输入解析及最小单位转换 |
+| `src/domain/orders.ts` | 演示订单校验与快照，含示例赠礼地址、多人长信和爱情契约 |
+| `src/domain/reserve-plan.ts` | 礼金快照、币种、解锁与定投参数的共享验证 |
+| `src/domain/series.ts` | 仅注册 Genesis Zodiac 主题特展 |
+| `src/domain/zodiac-artwork.ts` | 生肖柜台和订单共用藏品快照定义 |
+| `src/domain/vault-gift.ts` | 内封资产类型、开启时间校验及最小单位转换 |
 | `src/domain/zodiac.ts` | 十二生肖作品、模型地址与筛选配置 |
+| `src/lib/generative-art.ts` | 同步 SHA-256 种子、演示地址与演示红线档案哈希 |
+| `src/lib/atlas-oracle.ts` | BSC 行情馈源注册表、Atlas Push 单馈源 ABI 和来源元数据 |
+| `src/lib/gift-snapshot.ts` | 公开演示赠礼的限长 base64url 快照编解码 |
+| `src/lib/injected-wallet.ts` | EIP-6963、注入钱包探测、签名会话请求与测试网切换 |
+| `src/lib/gift-copy.ts` | 赠礼错误提示、信纸和生肖文案的中英文内容 |
+| `src/lib/i18n.tsx` | 客户端语言 Context、英文默认值、偏好持久化与双语切换 |
+| `src/lib/invitation-qr.ts` | 生成高对比度、整数像素模块的取礼邀请函二维码 |
+| `src/lib/ritual-sound.ts` | 使用原生 Web Audio 合成落印、启封与亮灯音效 |
 | `src/lib/test-gift.ts` | 钱包和服务端使用的平台测试赠礼合约 ABI |
 | `src/lib/testnet.ts` | BSC 测试网链 97、RPC、浏览器和 tBNB 参数 |
+| `src/lib/vault-preview-link.ts` | 用 URL 片段传递胶囊与合买演示数据 |
+| `src/lib/zodiac-share.ts` | 生肖收礼路径、演示契约和多人祝福校验、分享查询压缩 |
 | `src/ports/integrations.ts` | 早期身份解析、钱包认证和链上核验的目标接口类型，实际接入模块另见 server |
 | `src/server/application-upload.ts` | 读取申请附件表单，流式限长、数量/大小及扩展名与文件头检查 |
 | `src/server/creator-application-repository.ts` | SQLite 私有申请与附件仓储，事务防重、人工审核、查询分页 |
 | `src/server/data-directory.ts` | 确定 MEMENT_DATA_DIR 或默认本地数据目录 |
+| `src/server/gathering-repository.ts` | SQLite 集结房、容量和截止控制、幂等席位加入 |
+| `src/server/reserve-market.ts` | 过滤 BSC PancakeSwap 池并提取最大单池流动性与参考价 |
 | `src/server/mode.ts` | 演示 API 模式保护，拒绝非 demo 模式 |
 | `src/server/operations.ts` | 运营 SQLite 存储，投稿凭证、作品、价格历史、测试版绑定、销售及演示结算 |
 | `src/server/operator-auth.ts` | 运营密钥生成与验证、可撤销的进程内会话及 Cookie |
@@ -545,6 +593,9 @@
 | --- | --- |
 | `tests/artwork-policy.test.ts` | 验证转让/销毁独立、整数分账守恒、快照及非法配置 |
 | `tests/creator-applications.test.ts` | 验证申请边界、链接、幂等、人工审核和跨连接恢复 |
+| `tests/generative-gifting.test.ts` | 新作品目录、种子稳定性、演示订单隔离、合买及生肖分享快照边界 |
+| `tests/final-ritual.test.ts` | 验证礼金解锁和 DCA、生肖约定快照、集结幂等及行情筛选 |
+| `tests/gift-snapshot.test.ts` | 验证公开快照可逆、非法输入及超长拒绝 |
 | `tests/gifts.test.ts` | 验证早期输入、重复提交、容量及非演示模式拒绝 |
 | `tests/orders.test.ts` | 验证订单防篡改、持久快照、幂等、事务回滚与过期 |
 | `tests/request-json.test.ts` | 验证分块请求超过字节上限立即停止读取 |

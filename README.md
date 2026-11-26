@@ -1,65 +1,73 @@
 # Mement
 
-面向加密用户的精选数字艺术礼物平台。创作者经审核后上传作品，用户挑选、购买并直接赠送 NFT 到朋友的钱包，收礼人打开链接即可欣赏作品与祝福。产品名暂定 Mement，仓库名沿用 `proof-of-cake`。
+Mement turns curated digital art into a gift for someone you care about, a promise you share, or your future self. Seal a message or a reserve and open it together when the moment arrives.
 
-截至 2026-11-21，仓库包含可运行的平台前后台、创作者审核与投稿、作品定价、销售和演示结算、钱包签名登录、BSC 测试网发行与交易核验，以及《计划之外》生日 3D 个例。平台公网测试网钱包验收及主网支付上线仍有待完成。
+## Try the gifting flow
 
-## 接手入口
+- **Gift Someone** — Choose artwork from the 3D and generative art Vitrine, add a public message, and share an unboxing link.
+- **Shared Promise** — Create a keepsake for two named participants with a shared opening date and preview terms.
+- **To Future Me** — Set a Time Capsule date or a Price Milestone with a maximum waiting period.
+- **Login-free unboxing** — Open the artwork and letter directly. Gift links can name an intended recipient. Wallet sign-in verifies address control with a server challenge. Demo links preview identity binding and reserve rules without verifying email, social, or `.ai` identity or moving funds.
 
-- [AI 接手说明](docs/AI_HANDOFF.md) 介绍当前功能、数据流、启动方式、环境配置和已知缺口。
-- [逐文件说明](docs/FILE_MAP.md) 列出仓库中每个文件的用途，按路径分组。
-- [平台规则](docs/PLATFORM_V1.md) 记录发行规则、50/50 分成和直接送达等已确认决定。
-- [当前进度](docs/STATUS.md) 顶部为当前摘要，下方保存历史推进记录。
-- [生日 3D 测试版归档](archives/README.md) 提供早期生日演示 ZIP 和历史标签。
-- [平台流程与测试网操作](docs/releases/PLATFORM_DEMO.md)、[生日个例说明](docs/releases/BIRTHDAY_DEMO.md)、[生日 NFT 发行记录](docs/releases/BIRTHDAY_NFT_PLAN.md)。
+## Live BSC Testnet (Chain 97) Deployments
 
-## 本地启动
+| Contract / Oracle Feed | Network | Address |
+| --- | --- | --- |
+| **MementVaultGift** (Soulbound NFT + Native Vault + Atlas Milestone) | BSC Testnet (97) | [`0xCd918f5eB2070dc82FD0933b3D66073338f334F8`](https://testnet.bscscan.com/address/0xCd918f5eB2070dc82FD0933b3D66073338f334F8) |
+| **MementLoveVault** (Two-Party Shared Promise + 30-Day Cooldown) | BSC Testnet (97) | [`0x4601DD2C53d10A7561C795C3b3DaD3669b6270EF`](https://testnet.bscscan.com/address/0x4601DD2C53d10A7561C795C3b3DaD3669b6270EF) |
+| **Atlas Oracle · BTC/USD** (Onchain Milestone Push Feed) | BSC Testnet (97) | [`0xE20536BC715AAc6560394E33DEb66Ed205aEEc33`](https://testnet.bscscan.com/address/0xE20536BC715AAc6560394E33DEb66Ed205aEEc33) |
+| **Atlas Oracle · BNB/USD** (Live Reference Push Feed) | BSC Mainnet (56) | [`0x9C0517F5b4C8657c7F18d68d2d79E2B3b1cd6438`](https://bscscan.com/address/0x9C0517F5b4C8657c7F18d68d2d79E2B3b1cd6438) |
+| **Atlas Oracle · ETH/USD** (Live Reference Push Feed) | BSC Mainnet (56) | [`0x7942b8dd9F552c57Eb94D16Ea8215AeF6cAC948f`](https://bscscan.com/address/0x7942b8dd9F552c57Eb94D16Ea8215AeF6cAC948f) |
 
-使用 Node.js 24 和 npm。
+## Sponsor integrations
+
+| Sponsor | Integration |
+| --- | --- |
+| **BNB Smart Chain** | Platform chain writes target **BSC Testnet 97** and use tBNB. The full `/wallet` panel handles testnet gifting and transaction verification. The standalone `/receive` birthday gift has a separate historical mainnet release. |
+| **Atlas Oracle** | The BSC registry covers BTC/USD, ETH/USD, BNB/USD, and USDT/USD. The market route reads configured Atlas Push single-feed adapters on BSC and labels live PancakeSwap BSC reference quotes when an Atlas feed is unavailable. These prices drive the demo milestone preview. [Developer docs](https://docs.atlasoracle.io) · [Feed explorer](https://atlasoracle.io/feeds) |
+| **Cloudflare** | Bounded public snapshots let built-in and Zodiac demo gifts open when the local SQLite order is missing on a fresh instance. The route prefers stored orders and validates fallback snapshots before display. The fallback is a portable demo rendering path. The full application still requires a compatible Node runtime and persistence for order creation and creator uploads. |
+
+Set `ATLAS_ORACLE_FEED_BTC`, `ATLAS_ORACLE_FEED_ETH`, `ATLAS_ORACLE_FEED_BNB`, or `ATLAS_ORACLE_FEED_USDT` to the corresponding Atlas Push single-feed adapter address. Optionally set `ATLAS_ORACLE_BSC_RPC` to a BSC mainnet read endpoint. The receipt shows the pair and labels a PancakeSwap fallback. The app uses no default Atlas contract addresses.
+
+Portable links include public gift text and display data in the URL. A snapshot is editable and grants no wallet session, payment record, or claim authority. Links above the 1,400-character limit and uploaded works depend on stored orders.
+
+## Architecture
+
+| Layer | Code |
+| --- | --- |
+| Application | `src/app` — Next.js App Router, market API, demo gift routes, creator studio, operations |
+| Experience | `src/components` — React, Three.js and generative artwork, EN/ZH gifting and receive flows |
+| Domain | `src/domain` — Validation, order snapshots, artwork policies and reserve rules |
+| Server | `src/server` — SQLite orders, server wallet challenges and testnet transaction verification |
+| Integrations | `src/lib`, `contracts` — Atlas adapter registry, portable gift codec, testnet ABIs and Solidity contracts |
+
+## Run locally
+
+Use Node.js 22.13+ with built-in SQLite. The repository pins Node.js 24.
 
 ```sh
 npm ci
 npm run dev
 ```
 
-默认访问 `http://127.0.0.1:3000`。首页 `/`，作者申请 `/creators/apply`，作者投稿 `/creators/studio`，运营后台 `/ops`，钱包登录 `/wallet`，生日三维个例 `/receive`。运营首次登录会在本地数据目录生成 `operator.key`，也可通过 `MEMENT_OPERATOR_KEY` 配置。
+Open [the local Vitrine](http://127.0.0.1:3000). For sample creator listings and clearly labeled demo sales, run `npx tsx scripts/seed-showcase.ts`. Data defaults to `delivery/platform-demo/`. For remote wallet sign-in, set `MEMENT_ORIGIN` to the public HTTPS origin.
 
-演示数据可以通过下列命令生成，包含三位示例作者、三件作品和六笔样例订单。
-
-```sh
-npx tsx scripts/seed-showcase.ts
-```
-
-默认数据保存在被 Git 忽略的 `delivery/platform-demo/`，可用 `MEMENT_DATA_DIR` 指定可写目录。新克隆的项目需自行初始化数据。具体配置见 [AI 接手说明](docs/AI_HANDOFF.md)。
-
-## 验证
+## Verify
 
 ```sh
 npm run typecheck
 npm test
 npm run test:nft
-node --test scripts/testnet-contract-test.mjs
+node --test scripts/{testnet,vault-gift,group-gift,love-vault}-contract-test.mjs
 npm run build
 ```
 
-CI 同样运行这些检查。合约测试在本地隔离链执行。生日个例已单独发行过主网 NFT，平台的购买与发行功能当前使用 BSC 测试网配置。
+Contract tests run on isolated local chains.
 
-## 目录概览
+## 中文摘要
 
-| 目录 | 用途 |
-| --- | --- |
-| `src/app/` | 页面、接口、服务端表单操作和样式 |
-| `src/components/` | 首页、钱包、赠礼、收礼和三维体验 |
-| `src/domain/` | 作品、申请、订单、规则与整数分账 |
-| `src/server/` | SQLite 存储、后台权限、签名登录和链上核验 |
-| `src/lib/` | 测试网参数和客户端合约 ABI |
-| `contracts/` | 生日个例合约、平台测试合约和编译产物 |
-| `public/` | 网站图像、字体、品牌提案、生日模型与许可 |
-| `scripts/` | 编译、静态导出、样例数据和验证工具 |
-| `tests/` | 业务与权限边界测试 |
-| `docs/` | 产品、技术、接口、交付记录和接手说明 |
-| `archives/` | 生日测试版压缩归档 |
-| `design-demos/` | 历史视觉探索、原型、截图和检查记录 |
-| `assets/`、`infra/`、`research/` | 素材、基础设施和调研资料的预留入口 |
+Mement 是精选数字艺术赠礼平台，支持「赠予他人」「双人约定」「致未来的自己」。用户可挑选三维或生成艺术，封入公开祝福，体验时间胶囊或币价里程碑。收礼人无需登录即可启封。钱包身份仅由服务端校验签名确认，收礼身份绑定和礼金条件在演示中仅供预览。
 
-运行配置、登录密钥、数据库、申请附件和本地发行交付包保存在开发机。仓库保持私有。公开展示的生日个例资料具有独立发布记录。
+平台链上操作限于 BSC 测试网 97。币价可配置 Atlas Oracle，未取得 Atlas 报价时使用标明来源的 PancakeSwap BSC 参考价。Cloudflare 等无状态实例可凭有效的公开快照恢复内置作品和生肖赠礼预览。独立生日作品保留历史主网发行记录。
+
+[接手说明](docs/AI_HANDOFF.md) · [文件索引](docs/FILE_MAP.md) · [平台规则](docs/PLATFORM_V1.md) · [当前进度](docs/STATUS.md) · [测试网演示](docs/releases/PLATFORM_DEMO.md) · [生日个例](docs/releases/BIRTHDAY_DEMO.md) · [生日发行记录](docs/releases/BIRTHDAY_NFT_PLAN.md)

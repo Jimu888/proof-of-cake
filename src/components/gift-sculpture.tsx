@@ -1,5 +1,6 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
+import {useLanguage} from '../lib/i18n';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
@@ -7,6 +8,7 @@ import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
 /** A real, procedural mesh. The artwork inside remains a separate media asset. */
 export default function GiftSculpture({opening=false}:{opening?:boolean}){
+ const {t}=useLanguage();
  const host=useRef<HTMLDivElement>(null), open=useRef(opening), actions=useRef<{rotate:(n:number)=>void;reset:()=>void}|null>(null);
  const [status,setStatus]=useState<'loading'|'ready'|'fallback'>('loading');
  useEffect(()=>{open.current=opening},[opening]);
@@ -15,7 +17,7 @@ export default function GiftSculpture({opening=false}:{opening?:boolean}){
   let renderer:THREE.WebGLRenderer;
   try{renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power'});}catch{setStatus('fallback');return;}
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.7));renderer.setClearColor(0x000000,0);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.25;
-  renderer.domElement.setAttribute('aria-label','可旋转的三维黑曜石礼盒');renderer.domElement.setAttribute('role','img');el.appendChild(renderer.domElement);
+  el.appendChild(renderer.domElement);
   const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(37,1,.1,40);camera.position.set(3.7,2.8,4.8);
   const pmrem=new THREE.PMREMGenerator(renderer),room=new RoomEnvironment(),env=pmrem.fromScene(room,.04);scene.environment=env.texture;room.dispose();pmrem.dispose();
   const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,.2,0);controls.enablePan=false;controls.enableZoom=false;controls.minPolarAngle=.3;controls.maxPolarAngle=Math.PI-.3;controls.update();
@@ -50,8 +52,9 @@ export default function GiftSculpture({opening=false}:{opening?:boolean}){
  },[]);
  useEffect(()=>{host.current?.dispatchEvent(new Event('gift-open'))},[opening,status]);
  return <div className="sculpture" data-renderer={status}>
-  <div ref={host} className="sculpture-canvas"/>
-  {status!=='ready'&&<div className="sculpture-fallback"><img src="/cryptogift/gift.png" alt="黑曜石礼盒"/><span>{status==='loading'?'正在准备三维礼盒…':'此设备暂不支持三维显示，已显示礼盒图片。'}</span></div>}
-  {status==='ready'&&!opening&&<div className="sculpture-controls"><span>拖动旋转 · 触屏可拖动</span><div><button aria-label="向左旋转礼盒" onClick={()=>actions.current?.rotate(-Math.PI/6)}>↶</button><button onClick={()=>actions.current?.reset()}>复位</button><button aria-label="向右旋转礼盒" onClick={()=>actions.current?.rotate(Math.PI/6)}>↷</button></div></div>}
+  <div ref={host} className="sculpture-canvas" role={status==='ready' ? 'img' : undefined}
+    aria-label={status==='ready' ? t('Rotatable 3D obsidian gift box', '可旋转的三维黑曜石礼盒') : undefined}/>
+  {status!=='ready'&&<div className="sculpture-fallback"><img src="/cryptogift/gift.png" alt={t('Obsidian gift box', '黑曜石礼盒')}/><span>{status==='loading' ? t('Preparing the 3D gift box…', '正在准备三维礼盒…') : t('3D display is unavailable on this device. Showing the gift box image.', '此设备暂不支持三维显示，已显示礼盒图片。')}</span></div>}
+  {status==='ready'&&!opening&&<div className="sculpture-controls"><span>{t('Drag or swipe to rotate', '拖动旋转 · 触屏可拖动')}</span><div><button aria-label={t('Rotate gift box left', '向左旋转礼盒')} onClick={()=>actions.current?.rotate(-Math.PI/6)}>↶</button><button onClick={()=>actions.current?.reset()}>{t('Reset view', '复位')}</button><button aria-label={t('Rotate gift box right', '向右旋转礼盒')} onClick={()=>actions.current?.rotate(Math.PI/6)}>↷</button></div></div>}
  </div>;
 }

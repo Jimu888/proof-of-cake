@@ -8,6 +8,11 @@ export const giftAbi = [
 export const vaultGiftAbi = [
   'function mintGiftWithNativeVault(bytes32 orderId,address recipient,string message,uint256 vaultAmount) payable returns (uint256)',
   'function mintGiftWithTokenVault(bytes32 orderId,address recipient,string message,address token,uint256 desiredAmount) payable returns (uint256)',
+  'function supportsTimeLock() view returns (bool)',
+  'function mintGiftWithNativeVaultLocked(bytes32 orderId,address recipient,string message,uint256 vaultAmount,uint64 unlockTime) payable returns (uint256)',
+  'function mintGiftWithAtlasMilestone(bytes32 orderId,address recipient,string message,uint256 vaultAmount,address atlasFeed,int256 targetPrice,uint64 maxDeadline) payable returns (uint256)',
+  'function mintGiftWithTokenVaultLocked(bytes32 orderId,address recipient,string message,address token,uint256 desiredAmount,uint64 unlockTime) payable returns (uint256)',
+  'function priceMilestones(uint256 tokenId) view returns (address atlasFeed,int256 targetPrice,uint64 maxDeadline)',
   'function burnAndRedeem(uint256 tokenId)',
   'function vaultAssets(uint256 tokenId) view returns (address token,uint256 amount,bool redeemed,address redeemer,uint256 redeemedAt,uint256 redeemedBlock,uint256 received)',
   'function ownerOf(uint256 tokenId) view returns (address)',

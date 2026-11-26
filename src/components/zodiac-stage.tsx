@@ -5,16 +5,24 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { useLanguage } from '../lib/i18n';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { getZodiacById, type ActiveZodiacId, type ZodiacFilter } from '../domain/zodiac';
 
 export type ZodiacStageProps = {
   sign: ActiveZodiacId;
   mode: 'hero' | 'studio';
+  heroFraming?: 'card';
   filter?: ZodiacFilter;
   motionEnabled?: boolean;
   unsealNonce?: number;
   pulseNonce?: number;
-  onReady?: () => void;
+  onRevealComplete?: () => void;
+  dissolving?: boolean;
 };
 
 type SharedUniforms = {
@@ -258,7 +266,7 @@ function patchZodiacMaterial(material: THREE.Material, uniforms: SharedUniforms,
 
         if (uFilter < 0.5) {
           // Original Enhanced: preserve Blender materials + subtle gallery rim
-          col = col * 1.08 + uAccent * (fresnel * 0.24);
+          col += uAccent * (fresnel * 0.13);
         } else if (uFilter < 1.5) {
           // Obsidian & Champagne Gold
           vec3 darkObs = vec3(0.05, 0.055, 0.07) + vec3(0.16, 0.17, 0.2) * lum;
@@ -286,9 +294,15 @@ function patchZodiacMaterial(material: THREE.Material, uniforms: SharedUniforms,
             coord = vHeightT; // Ox & Dragon: bottom to top
           }
           float band = exp(-abs(coord - uPulse) * 14.0);
-          col += uAccent * (band * 0.72);
+          col += uAccent * (band * 0.48);
         }
 
+        // Compress only HDR highlights before bloom so bright facets stay legible.
+        float peak = max(col.r, max(col.g, col.b));
+        if (peak > 1.0) {
+          float shoulder = 1.0 + 1.2 * (1.0 - exp(-0.62 * (peak - 1.0)));
+          col *= shoulder / peak;
+        }
         gl_FragColor.rgb = col;
         #include <dithering_fragment>
         `,
@@ -300,12 +314,18 @@ function patchZodiacMaterial(material: THREE.Material, uniforms: SharedUniforms,
 export default function ZodiacStage({
   sign,
   mode,
+  heroFraming,
   filter = 'original',
   motionEnabled = true,
   unsealNonce = 0,
   pulseNonce = 0,
-  onReady,
+  onRevealComplete,
+  dissolving = false,
 }: ZodiacStageProps) {
+  const revealComplete = useRef(onRevealComplete);
+  revealComplete.current = onRevealComplete;
+  const dissolve = useRef(dissolving);
+  dissolve.current = dissolving;
   const containerRef = useRef<HTMLDivElement>(null);
   const particleRef = useRef<HTMLCanvasElement>(null);
   const [progress, setProgress] = useState(0);
@@ -324,7 +344,8 @@ export default function ZodiacStage({
 
   const pulseStartRef = useRef<number>(-10);
   const unsealStartRef = useRef<number>(mode === 'hero' ? -10 : 0);
-  const pointerTargetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const pointerYaw = useRef(0);
+  const { t } = useLanguage();
   const spec = getZodiacById(sign);
 
   // Live uniform sync for filter & motion toggle
@@ -354,7 +375,7 @@ export default function ZodiacStage({
   // 2D Crypto Atmosphere Particle Overlay
   useEffect(() => {
     const canvas = particleRef.current;
-    if (!canvas) return;
+    if (!canvas || mode === 'hero') return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -365,133 +386,51 @@ export default function ZodiacStage({
     let width = 0;
     let height = 0;
 
-    type Particle = {
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-      size: number;
-      alpha: number;
-      char?: string;
-      wick?: number;
-    };
-
-    const count = mode === 'hero' ? 20 : 34;
-    const particles: Particle[] = [];
-
+    const accent = new THREE.Color(spec.accentHex);
+    const tint = accent.getStyle(THREE.SRGBColorSpace);
+    const particles = Array.from({ length: 43 }, () => ({
+      x: Math.random(), y: Math.random(),
+      size: .45 + Math.random() * 1.2,
+      alpha: .13 + Math.random() * .46,
+      phase: Math.random() * Math.PI * 2,
+    }));
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       width = Math.max(1, rect.width);
       height = Math.max(1, rect.height);
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
-
-    const resetParticle = (p: Particle, initial: boolean) => {
-      if (sign === 'goat') {
-        p.x = Math.random() * width;
-        p.y = initial ? Math.random() * height : -16;
-        p.vx = (Math.random() - 0.5) * 0.14;
-        p.vy = 0.25 + Math.random() * 0.35;
-        p.size = 4 + Math.random() * 5;
-        p.alpha = 0.14 + Math.random() * 0.24;
-      } else if (sign === 'horse') {
-        p.x = initial ? Math.random() * width : width + 30;
-        p.y = Math.random() * height;
-        p.vx = -(1.4 + Math.random() * 1.9);
-        p.vy = 0.25 + Math.random() * 0.35;
-        p.size = 18 + Math.random() * 34;
-        p.alpha = 0.12 + Math.random() * 0.22;
-      } else if (sign === 'ox') {
-        p.x = Math.random() * width;
-        p.y = initial ? Math.random() * height : height + 24;
-        p.vx = 0;
-        p.vy = -(0.28 + Math.random() * 0.38);
-        p.size = 8 + Math.random() * 12;
-        p.wick = 5 + Math.random() * 8;
-        p.alpha = 0.16 + Math.random() * 0.22;
-      } else {
-        p.x = Math.random() * width;
-        p.y = initial ? Math.random() * height : height + 16;
-        p.vx = (Math.random() - 0.5) * 0.12;
-        p.vy = -(0.22 + Math.random() * 0.32);
-        p.size = 10 + Math.random() * 4;
-        p.char = Math.random() > 0.5 ? '1' : '0';
-        p.alpha = 0.14 + Math.random() * 0.24;
-      }
-    };
-
-    resize();
-    for (let i = 0; i < count; i++) {
-      const p: Particle = { x: 0, y: 0, vx: 0, vy: 0, size: 6, alpha: 0.2 };
-      resetParticle(p, true);
-      particles.push(p);
-    }
-
-    const observer = new ResizeObserver(resize);
-    observer.observe(canvas);
-
-    const draw = () => {
+    let started: number | undefined;
+    const draw = (now: number) => {
+      started ??= now;
+      const elapsed = (now - started) / 1000;
       ctx.clearRect(0, 0, width, height);
-      for (const p of particles) {
-        p.x += p.vx;
-        p.y += p.vy;
-
-        if (sign === 'goat') {
-          if (p.y > height + 20) resetParticle(p, false);
-          ctx.save();
-          ctx.translate(p.x, p.y);
-          ctx.strokeStyle = `rgba(245, 200, 108, ${p.alpha})`;
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(0, -p.size);
-          ctx.lineTo(p.size * 0.72, 0);
-          ctx.lineTo(0, p.size);
-          ctx.lineTo(-p.size * 0.72, 0);
-          ctx.closePath();
-          ctx.stroke();
-          ctx.restore();
-        } else if (sign === 'horse') {
-          if (p.x < -60 || p.y > height + 40) resetParticle(p, false);
-          const grad = ctx.createLinearGradient(p.x, p.y, p.x + p.size, p.y - p.size * 0.2);
-          grad.addColorStop(0, `rgba(125, 211, 252, ${p.alpha})`);
-          grad.addColorStop(1, 'rgba(125, 211, 252, 0)');
-          ctx.strokeStyle = grad;
-          ctx.lineWidth = 1.1;
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(p.x + p.size, p.y - p.size * 0.2);
-          ctx.stroke();
-        } else if (sign === 'ox') {
-          if (p.y < -30) resetParticle(p, false);
-          const w = 3.5;
-          const wick = p.wick ?? 6;
-          ctx.strokeStyle = `rgba(52, 211, 153, ${p.alpha * 0.85})`;
-          ctx.fillStyle = `rgba(52, 211, 153, ${p.alpha})`;
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y - wick);
-          ctx.lineTo(p.x, p.y + p.size + wick);
-          ctx.stroke();
-          ctx.fillRect(p.x - w / 2, p.y, w, p.size);
-        } else {
-          if (p.y < -20) resetParticle(p, false);
-          ctx.fillStyle = `rgba(232, 196, 116, ${p.alpha})`;
-          ctx.font = `${Math.round(p.size)}px ui-monospace, Menlo, monospace`;
-          ctx.fillText(p.char ?? '1', p.x, p.y);
-        }
+      for (const [i, p] of particles.entries()) {
+        const x = p.x * width + Math.sin(elapsed * .2 + p.phase) * 5;
+        const y = ((p.y + elapsed * .006) % 1) * height;
+        ctx.globalAlpha = p.alpha * (.64 + Math.sin(elapsed * .9 + p.phase) * .35);
+        ctx.fillStyle = i % 3 ? '#e6ebf3' : tint;
+        ctx.shadowColor = tint;
+        ctx.shadowBlur = i % 4 === 0 ? 6 : 0;
+        ctx.fillRect(x, y, p.size, i % 7 === 0 ? p.size * 3 : p.size);
+        if (i % 9 === 0) ctx.fillRect(x - p.size, y + p.size, p.size * 3, .55);
       }
+      ctx.globalAlpha = 1;
       rafId = requestAnimationFrame(draw);
     };
 
+    resize();
+    const observer = new ResizeObserver(resize);
+    observer.observe(canvas);
     rafId = requestAnimationFrame(draw);
     return () => {
       cancelAnimationFrame(rafId);
       observer.disconnect();
     };
-  }, [sign, mode]);
+  }, [mode, spec.accentHex]);
 
   // Three.js WebGL Stage
   useEffect(() => {
@@ -514,38 +453,87 @@ export default function ZodiacStage({
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     } catch {
       setFailed(true);
+      revealComplete.current?.();
       return;
     }
 
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    const touch = window.matchMedia('(pointer: coarse)').matches;
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, touch ? 1.15 : 1.4);
+    if (touch) renderer.domElement.classList.add('zodiac-touch-canvas');
+    renderer.setPixelRatio(pixelRatio);
+    renderer.setClearColor(0x000000, 0);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.18;
+    renderer.toneMappingExposure = 1.02;
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
-    camera.position.set(0, 0.25, mode === 'hero' ? 4.9 : 5.1);
+    const room = new RoomEnvironment();
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const environment = pmrem.fromScene(room, 0.04, 0.1, 100, { size: 128 });
+    room.dispose();
+    pmrem.dispose();
+    scene.environment = environment.texture;
+    const hero = mode === 'hero';
+    const card = hero && heroFraming === 'card';
+    scene.environmentIntensity = 0.55;
+    const camera = new THREE.PerspectiveCamera(card ? 30 : 34, 1, 0.1, 100);
+    if (hero) camera.position.set(0, 0.24, 5.4);
+    else camera.position.set(0, 0.25, 5.1);
+
+    const composer = new EffectComposer(renderer);
+    composer.setPixelRatio(pixelRatio);
+    const scenePass = new RenderPass(scene, camera);
+    const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.16, 0.35, 0.88);
+    const output = new OutputPass();
+    composer.addPass(scenePass);
+    composer.addPass(bloom);
+    composer.addPass(output);
+
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     // Three-point gallery lighting to keep obsidian facets sculptural and legible
-    const ambient = new THREE.AmbientLight(0xdbe6ff, 0.72);
+    const ambient = new THREE.AmbientLight(hero ? 0xebf0fa : 0xdbe6ff, hero ? 0.57 : 0.72);
     scene.add(ambient);
 
-    const keyLight = new THREE.DirectionalLight(0xffffff, 2.05);
-    keyLight.position.set(3.2, 5.4, 4.8);
+    const keyLight = new THREE.DirectionalLight(0xffffff, hero ? 1.8 : 2.05);
+    keyLight.position.set(1.2, 6, 3.8);
     scene.add(keyLight);
 
-    const rimLight = new THREE.DirectionalLight(0xa5d8ff, 1.55);
+    const rimLight = new THREE.DirectionalLight(0x9cb7cc, hero ? 1.18 : 1.55);
     rimLight.position.set(-4.2, 3.2, -4.5);
     scene.add(rimLight);
 
-    const warmFill = new THREE.PointLight(0xf5c86c, 2.2, 14);
-    warmFill.position.set(2.4, -1.6, 3.2);
+    const warmFill = new THREE.DirectionalLight(0xf2743a, 0.38);
+    warmFill.position.set(-4.2, 1.8, 2.0);
     scene.add(warmFill);
 
     const rootGroup = new THREE.Group();
+    if (hero) rootGroup.rotation.y = 0.38;
     scene.add(rootGroup);
+
+    const shadow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec2 vUv;
+        void main() {
+          float falloff = 1.0 - smoothstep(0.06, 0.5, length(vUv - 0.5));
+          gl_FragColor = vec4(0.0, 0.0, 0.0, falloff * falloff * 0.55);
+        }
+      `,
+    }));
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.visible = false;
+    scene.add(shadow);
 
     let controls: OrbitControls | null = null;
     if (mode === 'studio') {
@@ -555,7 +543,7 @@ export default function ZodiacStage({
       controls.enablePan = false;
       controls.minDistance = 2.9;
       controls.maxDistance = 8.4;
-      controls.autoRotate = true;
+      controls.autoRotate = !reduced;
       controls.autoRotateSpeed = 0.65;
     }
 
@@ -566,6 +554,7 @@ export default function ZodiacStage({
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h, false);
+      composer.setSize(w, h);
     };
     resize();
     const resizeObserver = new ResizeObserver(resize);
@@ -576,11 +565,10 @@ export default function ZodiacStage({
       const rect = container.getBoundingClientRect();
       if (!rect.width || !rect.height) return;
       const nx = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
-      const ny = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
-      pointerTargetRef.current = { x: THREE.MathUtils.clamp(nx, -1, 1), y: THREE.MathUtils.clamp(ny, -1, 1) };
+      pointerYaw.current = THREE.MathUtils.clamp(nx, -1, 1);
     };
     const onPointerLeave = () => {
-      pointerTargetRef.current = { x: 0, y: 0 };
+      pointerYaw.current = 0;
     };
     if (mode === 'hero') {
       container.addEventListener('pointermove', onPointerMove);
@@ -592,14 +580,38 @@ export default function ZodiacStage({
     draco.setDecoderPath('/birthday/draco/');
     loader.setDRACOLoader(draco);
 
-    const disposableGeometries: THREE.BufferGeometry[] = [];
-    const disposableMaterials: THREE.Material[] = [];
+    const disposableGeometries = new Set<THREE.BufferGeometry>();
+    const disposableMaterials = new Set<THREE.Material>();
+    const textures = new Set<THREE.Texture>();
+    let revealed = false;
+    let reverseStarted: number | undefined;
+    let modelReady = false;
+    const finishReveal = () => {
+      if (revealed) return;
+      revealed = true;
+      revealComplete.current?.();
+    };
 
     loader.load(
       spec.modelUrl,
       (gltf) => {
-        if (disposed) return;
         const model = gltf.scene;
+        model.traverse(obj => {
+          if (!(obj instanceof THREE.Mesh)) return;
+          if (disposed) obj.geometry?.dispose();
+          for (const material of Array.isArray(obj.material) ? obj.material : [obj.material]) {
+            if (!material) continue;
+            for (const property of Object.values(material)) {
+              if (property instanceof THREE.Texture) {
+                if (disposed) property.dispose();
+                else textures.add(property);
+              }
+            }
+            if (disposed) material.dispose();
+            else disposableMaterials.add(material);
+          }
+        });
+        if (disposed) return;
         model.updateMatrixWorld(true);
 
         const box = new THREE.Box3().setFromObject(model);
@@ -609,7 +621,7 @@ export default function ZodiacStage({
         box.getCenter(center);
 
         const maxDim = Math.max(size.x, size.y, size.z, 0.001);
-        const targetSize = mode === 'hero' ? 2.45 : 2.55;
+        const targetSize = card ? 1.88 : hero ? 2.05 : 2.55;
         const scale = targetSize / maxDim;
 
         model.scale.setScalar(scale);
@@ -625,26 +637,29 @@ export default function ZodiacStage({
           const nextGeo = prepareExplodableGeometry(obj.geometry, minY, spanY, obj.matrixWorld);
           obj.geometry.dispose();
           obj.geometry = nextGeo;
-          disposableGeometries.push(nextGeo);
+          disposableGeometries.add(nextGeo);
 
           if (Array.isArray(obj.material)) {
             obj.material = obj.material.map((m) => {
               const patched = patchZodiacMaterial(m, uniforms, sign);
-              disposableMaterials.push(patched);
+              disposableMaterials.add(patched);
               return patched;
             });
           } else if (obj.material) {
             const patched = patchZodiacMaterial(obj.material, uniforms, sign);
             obj.material = patched;
-            disposableMaterials.push(patched);
+            disposableMaterials.add(patched);
           }
         });
 
+        shadow.position.y = minY - 0.025;
+        shadow.scale.set(Math.max(size.x, size.z) * scale * 1.65, size.z * scale * 2, 1);
+        shadow.visible = true;
         rootGroup.add(model);
+        modelReady = true;
         setProgress(100);
         setLoaded(true);
 
-        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (mode === 'studio' && !reduced) {
           unsealStartRef.current = uniforms.uTime.value;
           uniforms.uUnseal.value = 0;
@@ -653,7 +668,7 @@ export default function ZodiacStage({
           uniforms.uUnseal.value = 1;
         }
         pulseStartRef.current = uniforms.uTime.value + 0.6;
-        onReady?.();
+        if (mode === 'hero' || reduced) finishReveal();
       },
       (xhr) => {
         if (disposed) return;
@@ -664,24 +679,38 @@ export default function ZodiacStage({
       () => {
         if (disposed) return;
         setFailed(true);
+        finishReveal();
       },
     );
 
     const clock = new THREE.Clock();
     let lastAutoPulse = 0;
 
-    const animate = () => {
+    let lastPaint = 0;
+    const animate = (now: number) => {
       if (disposed) return;
+      rafId = requestAnimationFrame(animate);
+      const interval = touch && mode === 'hero' ? 1000 / 30 : 0;
+      if (interval && now - lastPaint < interval - 1) return;
+      lastPaint = now;
       const dt = Math.min(clock.getDelta(), 0.05);
       uniforms.uTime.value += dt;
       const t = uniforms.uTime.value;
 
       // Unseal timeline (1.75s)
-      if (unsealStartRef.current >= 0) {
+      if (dissolve.current && modelReady) {
+        const now = performance.now();
+        reverseStarted ??= now;
+        uniforms.uUnseal.value = reduced ? 0 : Math.max(0, 1 - (now - reverseStarted) / 1650);
+        rootGroup.visible = uniforms.uUnseal.value > 0;
+      } else if (modelReady && unsealStartRef.current >= 0) {
         const elapsed = t - unsealStartRef.current;
         if (elapsed >= 0) {
           uniforms.uUnseal.value = Math.min(1, elapsed / 1.75);
-          if (elapsed >= 1.8) unsealStartRef.current = -10;
+          if (elapsed >= 1.75) {
+            unsealStartRef.current = -10;
+            finishReveal();
+          }
         }
       }
 
@@ -698,17 +727,15 @@ export default function ZodiacStage({
         uniforms.uPulse.value = 0;
       }
 
-      if (mode === 'hero') {
-        const targetYaw = pointerTargetRef.current.x * 0.24;
-        const targetPitch = pointerTargetRef.current.y * 0.14;
-        rootGroup.rotation.y += (t * 0.22 + targetYaw - rootGroup.rotation.y) * 0.05;
-        rootGroup.rotation.x += (targetPitch - rootGroup.rotation.x) * 0.05;
+      if (mode === 'hero' && !reduced) {
+        const targetYaw = pointerYaw.current * 0.24;
+        const yaw = card ? t * 0.2 : Math.sin(t * 0.43) * 0.18;
+        rootGroup.rotation.y += (0.38 + yaw + targetYaw - rootGroup.rotation.y) * 0.05;
       } else if (controls) {
         controls.update();
       }
 
-      renderer.render(scene, camera);
-      rafId = requestAnimationFrame(animate);
+      composer.render(dt);
     };
 
     rafId = requestAnimationFrame(animate);
@@ -725,21 +752,28 @@ export default function ZodiacStage({
       draco.dispose();
       for (const g of disposableGeometries) g.dispose();
       for (const m of disposableMaterials) m.dispose();
+      for (const texture of textures) texture.dispose();
+      shadow.geometry.dispose();
+      shadow.material.dispose();
+      bloom.dispose();
+      output.dispose();
+      composer.dispose();
+      environment.dispose();
       renderer.dispose();
       container.innerHTML = '';
     };
-  }, [sign, mode, spec.modelUrl, spec.accentHex, onReady]);
+  }, [sign, mode, heroFraming, spec.modelUrl, spec.accentHex]);
 
   return (
-    <div className={`zodiac-stage zodiac-stage-${mode}`}>
+    <div className={`zodiac-stage zodiac-stage-${mode}${dissolving ? ' is-dissolving' : ''}`}>
       <canvas ref={particleRef} className="zodiac-particles" aria-hidden="true" />
-      <div ref={containerRef} className="zodiac-webgl" />
+      <div ref={containerRef} className="zodiac-webgl" role={loaded ? "img" : undefined} aria-label={loaded ? t(spec.nameEn, spec.nameCn) : undefined}/>
 
       {(!loaded || failed) && spec.previewUrl && (
         <div className="zodiac-preview-fallback">
-          <img src={spec.previewUrl} alt={`${spec.nameCn} · ${spec.cryptoTheme}`} />
+          <img src={spec.previewUrl} alt={`${t(spec.nameEn, spec.nameCn)} · ${spec.cryptoTheme}`} />
           {!failed && (
-            <div className="zodiac-loading-bar" role="status" aria-label="正在加载 3D 生肖模型">
+            <div className="zodiac-loading-bar" role="status" aria-label={t("Loading the 3D zodiac model", "正在加载 3D 生肖模型")}>
               <span style={{ width: `${progress}%` }} />
             </div>
           )}
