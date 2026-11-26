@@ -2,7 +2,15 @@ import { catalog, findArtwork } from '../domain/catalog';
 import { getOperations } from './operations';
 
 export function publicCatalog() {
-  const creatorWorks = getOperations().list(true).map(work => work.artwork).filter(work => !work.showcase);
-  return [...creatorWorks, ...catalog];
+  try {
+    const creatorWorks = getOperations().list(true).map(work => work.artwork).filter(work => !work.showcase);
+    return [...creatorWorks, ...catalog];
+  } catch {
+    return [...catalog];
+  }
 }
-export function publicArtwork(id: string) { return findArtwork(id) ?? getOperations().publishedArtwork(id); }
+export function publicArtwork(id: string) {
+  const builtin = findArtwork(id);
+  if (builtin) return builtin;
+  try { return getOperations().publishedArtwork(id); } catch { return undefined; }
+}

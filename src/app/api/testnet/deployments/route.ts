@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { JsonRpcProvider, getAddress, isAddress } from 'ethers';
 import { testnet } from '../../../../lib/testnet';
+import { platformDirectory } from '../../../../server/data-directory';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,19 +17,26 @@ type StoredDeployments = {
   loveVaultTx?: string;
 };
 
+const DEFAULT_LIVE_BSC97: StoredDeployments = {
+  vaultGift: '0xCd918f5eB2070dc82FD0933b3D66073338f334F8',
+  loveVault: '0x4601DD2C53d10A7561C795C3b3DaD3669b6270EF',
+  atlasFeedBtc: '0xE20536BC715AAc6560394E33DEb66Ed205aEEc33',
+  vaultGiftTx: '0x7f716d5a3388861f128c7aa212825921fcfa2cced17dde11efb5dfae382214cf',
+  loveVaultTx: '0xf6c637157c8fd46e30aa4c93d090e3de9c4d5eb58fccaa02fd3e43a3f3bf36e8',
+};
+
 const txPattern = /^0x[0-9a-fA-F]{64}$/;
 
 function deploymentsFile() {
-  const dir = process.env.MEMENT_DATA_DIR || path.join(process.cwd(), 'delivery', 'platform-demo');
-  return path.join(dir, 'testnet-deployments.json');
+  return path.join(platformDirectory, 'testnet-deployments.json');
 }
 
 async function readStored(): Promise<StoredDeployments> {
   try {
     const raw = await readFile(deploymentsFile(), 'utf8');
-    return JSON.parse(raw) as StoredDeployments;
+    return { ...DEFAULT_LIVE_BSC97, ...(JSON.parse(raw) as StoredDeployments) };
   } catch {
-    return {};
+    return { ...DEFAULT_LIVE_BSC97 };
   }
 }
 

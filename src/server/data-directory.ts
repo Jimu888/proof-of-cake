@@ -1,6 +1,9 @@
-import { resolve } from 'node:path';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 
 const configured = process.env.MEMENT_DATA_DIR;
 export const platformDirectory = configured
   ? resolve(/* turbopackIgnore: true */ configured)
-  : resolve(process.cwd(), 'delivery/platform-demo');
+  : process.env.VERCEL
+    ? join(tmpdir(), 'mement-platform-demo')
+    : resolve(process.cwd(), 'delivery/platform-demo');
